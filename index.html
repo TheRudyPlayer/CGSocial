@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CGSocial Pre-Alpha 1.6 FIX</title>
+<title>CGSocial Pre-Alpha</title>
 <style>
 body{
   margin:0;
@@ -100,10 +100,16 @@ button{
   flex-shrink:0;
 }
 
+/* FIX: when avatar has image, remove yellow background */
 .avatar img{
   width:100%;
   height:100%;
   object-fit:cover;
+  border-radius:50%;
+}
+
+.avatar.img-mode{
+  background:transparent;
 }
 
 .post-content{
@@ -186,11 +192,11 @@ let posts = JSON.parse(localStorage.getItem("cg_posts")) || [];
 let users = JSON.parse(localStorage.getItem("cg_users")) || [];
 
 function showProfile(){
-  document.getElementById("profilePanel").style.display = "block";
+  document.getElementById("profilePanel").style.display="block";
 }
 
 function showHome(){
-  document.getElementById("profilePanel").style.display = "none";
+  document.getElementById("profilePanel").style.display="none";
 }
 
 function createAccount(){
@@ -204,7 +210,7 @@ function createAccount(){
     let r=new FileReader();
     r.onload=e=>saveUser(nick,e.target.result);
     r.readAsDataURL(file);
-  }else saveUser(nick,null);
+  } else saveUser(nick,null);
 }
 
 function saveUser(nick,img){
@@ -261,8 +267,7 @@ function likePost(i){
   let r=posts.length-1-i;
   if(posts[r]){
     posts[r].likes++;
-    save();
-    render();
+    save(); render();
   }
 }
 
@@ -270,8 +275,7 @@ function deletePost(i){
   let r=posts.length-1-i;
   if(posts[r]){
     posts.splice(r,1);
-    save();
-    render();
+    save(); render();
   }
 }
 
@@ -287,16 +291,18 @@ function render(){
     let div=document.createElement("div");
     div.className="post";
 
+    let isImage = typeof p.avatar === "string" && p.avatar.startsWith("data");
+
     let avatarHTML;
 
-    if(p.avatar && typeof p.avatar === "string" && p.avatar.startsWith("data")){
+    if(isImage){
       avatarHTML = `<img src='${p.avatar}'>`;
     } else {
-      avatarHTML = (p.avatar || "?");
+      avatarHTML = p.avatar || "?";
     }
 
     div.innerHTML=`
-      <div class="avatar">${avatarHTML}</div>
+      <div class="avatar ${isImage ? 'img-mode' : ''}">${avatarHTML}</div>
       <div class="post-content">
         <b>${p.user}</b><br>
         ${p.text}
