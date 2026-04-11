@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CGSocial 2.0</title>
+<title>CGSocial BETA</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
@@ -33,8 +33,6 @@ body{
   cursor:pointer;
 }
 
-.menu-item:hover{background:#334155}
-
 .main{
   flex:1;
   padding:18px;
@@ -45,18 +43,12 @@ header{
   padding:14px;
   border-radius:12px;
   text-align:center;
-  font-weight:bold;
-}
-
-.post-box{
-  display:none;
-  gap:8px;
-  margin:14px 0;
 }
 
 input{
-  flex:1;
+  width:100%;
   padding:10px;
+  margin:5px 0;
   border-radius:10px;
   border:none;
 }
@@ -67,43 +59,42 @@ button{
   border-radius:10px;
   background:#f59e0b;
   cursor:pointer;
+  width:100%;
 }
+
+.post-box{display:none;margin:10px 0}
 
 .post{
   background:#111827;
   padding:12px;
   border-radius:14px;
-  margin-bottom:10px;
-  display:flex;
-  gap:10px;
+  margin-top:10px;
 }
-
-.avatar{
-  width:42px;
-  height:42px;
-  border-radius:50%;
-  background:#f59e0b;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:bold;
-}
-
-.post-content{flex:1}
 </style>
 </head>
 <body>
 
 <div class="sidebar">
   <h3>🐔 CGSocial</h3>
-  <div class="menu-item" onclick="login()">🔐 Iniciar sesión</div>
-  <div class="menu-item" onclick="logout()">🚪 Cerrar sesión</div>
 </div>
 
 <div class="main">
 
 <header id="status">Modo Invitado</header>
 
+<!-- LOGIN / REGISTER -->
+<div id="authBox">
+  <input id="email" placeholder="Correo">
+  <input id="password" type="password" placeholder="Contraseña">
+  <input id="username" placeholder="Nombre visible">
+
+  <input type="file" id="avatar">
+
+  <button onclick="register()">Crear cuenta</button>
+  <button onclick="login()">Iniciar sesión</button>
+</div>
+
+<!-- POSTS -->
 <div class="post-box" id="postBox">
   <input id="postInput" placeholder="Escribe algo...">
   <button onclick="addPost()">Publicar</button>
@@ -114,11 +105,11 @@ button{
 </div>
 
 <script>
-// 🔥 PON TU CONFIG
+// 🔥 TU CONFIG
 const firebaseConfig = {
-  apiKey: "AIzaSyArVnNFSKQJJ0aWxblU7DtS_pGO4RJlZqk",
-  authDomain: "cgsocial.firebaseapp.com",
-  projectId: "cgsocial",
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_PROYECTO.firebaseapp.com",
+  projectId: "TU_PROYECTO_ID"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -126,45 +117,85 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// LOGIN
-function login(){
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider);
+let currentUserData = null;
+
+// REGISTRO
+async function register(){
+  let email = document.getElementById("email").value;
+  let pass = document.getElementById("password").value;
+  let username = document.getElementById("username").value;
+  let file = document.getElementById("avatar").files[0];
+
+  if(!email || !pass || !username){
+    return alert("Completa todo");
+  }
+
+  let userCred = await auth.createUserWithEmailAndPassword(email, pass);
+  let uid = userCred.user.uid;
+
+  let avatarBase64 = "";
+
+  if(file){
+    let reader = new FileReader();
+    reader.onload = async e=>{
+      avatarBase64 = e.target.result;
+
+      await db.collection("users").doc(uid).set({
+        username,
+        avatar: avatarBase64
+      });
+    };
+    reader.readAsDataURL(file);
+  }else{
+    await db.collection("users").doc(uid).set({
+      username,
+      avatar: username.charAt(0)
+    });
+  }
+
+  alert("Cuenta creada");
 }
 
-// LOGOUT
-function logout(){
-  auth.signOut();
+// LOGIN
+async function login(){
+  let email = document.getElementById("email").value;
+  let pass = document.getElementById("password").value;
+
+  await auth.signInWithEmailAndPassword(email, pass);
 }
 
 // DETECTAR USUARIO
-auth.onAuthStateChanged(user=>{
+auth.onAuthStateChanged(async user=>{
   let status = document.getElementById("status");
   let box = document.getElementById("postBox");
+  let authBox = document.getElementById("authBox");
 
   if(user){
-    status.textContent = "Usuario: " + user.displayName;
-    box.style.display = "flex";
+    let doc = await db.collection("users").doc(user.uid).get();
+    currentUserData = doc.data();
+
+    status.textContent = "Usuario: " + currentUserData.username;
+
+    box.style.display = "block";
+    authBox.style.display = "none";
+
   }else{
     status.textContent = "Modo Invitado";
     box.style.display = "none";
+    authBox.style.display = "block";
   }
 });
 
 // POST
 function addPost(){
-  let user = auth.currentUser;
   let text = document.getElementById("postInput").value;
 
-  if(!user) return alert("Inicia sesión");
-
   db.collection("posts").add({
-    user: user.displayName,
-    text: text,
+    text,
+    user: currentUserData.username,
+    avatar: currentUserData.avatar,
     time: Date.now()
   });
-
-  document.getElementById("postInput").value = "";
 }
 
 // FEED
@@ -176,15 +207,10 @@ db.collection("posts").orderBy("time","desc")
   snapshot.forEach(doc=>{
     let p = doc.data();
 
-    let avatar = p.user.charAt(0).toUpperCase();
-
     feed.innerHTML += `
       <div class="post">
-        <div class="avatar">${avatar}</div>
-        <div class="post-content">
-          <b>${p.user}</b><br>
-          ${p.text}
-        </div>
+        <b>${p.user}</b><br>
+        ${p.text}
       </div>
     `;
   });
