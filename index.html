@@ -5,160 +5,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CGSocial Pre-Alpha</title>
 <style>
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#0b1220;
-  color:white;
-  display:flex;
-}
-
-.sidebar{
-  width:220px;
-  background:#0f172a;
-  height:100vh;
-  padding:12px;
-}
-
-.menu-item{
-  padding:10px;
-  margin:6px 0;
-  background:#1f2937;
-  border-radius:10px;
-  cursor:pointer;
-}
-
+body{margin:0;font-family:Arial,sans-serif;background:#0b1220;color:white;display:flex}
+.sidebar{width:220px;background:#0f172a;height:100vh;padding:12px}
+.menu-item{padding:10px;margin:6px 0;background:#1f2937;border-radius:10px;cursor:pointer}
 .menu-item:hover{background:#334155}
+.main{flex:1;padding:18px}
+header{background:#111827;padding:14px;border-radius:12px;text-align:center;font-weight:bold}
+.badge{background:#ef4444;padding:3px 8px;border-radius:8px;font-size:10px;margin-left:6px}
+.status{font-size:12px;color:#94a3b8}
 
-.main{
-  flex:1;
-  padding:18px;
-}
+.post-box{display:none;gap:8px;margin:14px 0;flex-wrap:wrap}
+input{flex:1;padding:10px;border-radius:10px;border:none;outline:none}
+button{padding:10px 12px;border:none;border-radius:10px;background:#f59e0b;cursor:pointer;font-weight:bold}
+button:hover{filter:brightness(1.1)}
 
-header{
-  background:#111827;
-  padding:14px;
-  border-radius:12px;
-  text-align:center;
-  font-weight:bold;
-}
+.upload-btn{background:#2563eb;color:white}
+.upload-btn:hover{filter:brightness(1.2)}
 
-.badge{
-  background:#ef4444;
-  padding:3px 8px;
-  border-radius:8px;
-  font-size:10px;
-  margin-left:6px;
-}
+.post{background:#111827;padding:12px;border-radius:14px;margin-bottom:10px;display:flex;gap:10px}
+.avatar{width:42px;height:42px;border-radius:50%;background:#f59e0b;display:flex;align-items:center;justify-content:center;overflow:hidden;font-weight:bold;flex-shrink:0}
+.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.avatar.img-mode{background:transparent}
+.post-content{flex:1}
+.post img{max-width:100%;margin-top:8px;border-radius:10px}
+.actions{display:flex;gap:8px;margin-top:8px}
+.like-btn{background:#2563eb;color:white;border:none;padding:6px 10px;border-radius:8px}
+.delete-btn{background:#dc2626;color:white;border:none;padding:6px 10px;border-radius:8px}
+.profile-panel{display:none;background:#0f172a;padding:14px;border-radius:12px;margin-bottom:12px}
 
-.status{
-  font-size:12px;
-  color:#94a3b8;
-}
-
-.post-box{
-  display:none;
-  gap:8px;
-  margin:14px 0;
-}
-
-input{
-  flex:1;
-  padding:10px;
-  border-radius:10px;
-  border:none;
-  outline:none;
-}
-
-button{
-  padding:10px 12px;
-  border:none;
-  border-radius:10px;
-  background:#f59e0b;
-  cursor:pointer;
-}
-
-.post{
-  background:#111827;
-  padding:12px;
-  border-radius:14px;
-  margin-bottom:10px;
-  display:flex;
-  gap:10px;
-}
-
-.avatar{
-  width:42px;
-  height:42px;
-  border-radius:50%;
-  background:#f59e0b;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-  font-weight:bold;
-  flex-shrink:0;
-}
-
-/* FIX: when avatar has image, remove yellow background */
-.avatar img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  border-radius:50%;
-}
-
-.avatar.img-mode{
-  background:transparent;
-}
-
-.post-content{
-  flex:1;
-}
-
-.post img{
-  max-width:100%;
-  margin-top:8px;
-  border-radius:10px;
-}
-
-.actions{
-  display:flex;
-  gap:8px;
-  margin-top:8px;
-}
-
-.like-btn{
-  background:#2563eb;
-  color:white;
-  border:none;
-  padding:6px 10px;
-  border-radius:8px;
-}
-
-.delete-btn{
-  background:#dc2626;
-  color:white;
-  border:none;
-  padding:6px 10px;
-  border-radius:8px;
-}
-
-.profile-panel{
-  display:none;
-  background:#0f172a;
-  padding:14px;
-  border-radius:12px;
-  margin-bottom:12px;
-}
+.file-label{display:block;padding:10px;background:#374151;border-radius:10px;margin-top:8px;cursor:pointer;text-align:center}
+.file-label:hover{background:#4b5563}
+input[type="file"]{display:none}
 </style>
 </head>
 <body>
 
 <div class="sidebar">
   <h3>🐔 CGSocial</h3>
-  <div class="menu-item" onclick="showHome()">🏠 Inicio</div>
-  <div class="menu-item" onclick="showProfile()">👤 Perfil</div>
+  <div class="menu-item" onclick="showHome()">Inicio</div>
+  <div class="menu-item" onclick="showProfile()">Perfil</div>
 </div>
 
 <div class="main">
@@ -171,14 +56,24 @@ CGSocial <span class="badge">PRE-ALPHA</span>
 <div class="profile-panel" id="profilePanel">
   <h3>Perfil</h3>
   <input id="nickInput" placeholder="Nickname">
-  <input type="file" id="avatarFile" accept="image/*">
+
+  <label class="file-label">
+    Subir foto de perfil
+    <input type="file" id="avatarFile" accept="image/*">
+  </label>
+
   <button onclick="createAccount()">Crear cuenta</button>
   <button onclick="loginAccount()">Iniciar sesión</button>
 </div>
 
 <div class="post-box" id="postBox">
   <input id="postInput" placeholder="Escribe algo...">
-  <input id="imgInput" placeholder="Imagen URL">
+
+  <label class="file-label upload-btn">
+    Subir imagen
+    <input type="file" id="postImageFile" accept="image/*">
+  </label>
+
   <button onclick="addPost()">Publicar</button>
 </div>
 
@@ -193,10 +88,15 @@ let users = JSON.parse(localStorage.getItem("cg_users")) || [];
 
 function showProfile(){
   document.getElementById("profilePanel").style.display="block";
+  // ocultar caja de posts en perfil
+  document.getElementById("postBox").style.display="none";
 }
-
 function showHome(){
   document.getElementById("profilePanel").style.display="none";
+  // restaurar caja de posts solo si hay usuario
+  if(user){
+    document.getElementById("postBox").style.display="flex";
+  }
 }
 
 function createAccount(){
@@ -216,19 +116,15 @@ function createAccount(){
 function saveUser(nick,img){
   user={nick,avatar:img||nick.charAt(0).toUpperCase()};
   users.push(user);
-
   localStorage.setItem("cg_users",JSON.stringify(users));
   localStorage.setItem("cg_user",JSON.stringify(user));
-
   applyLogin();
 }
 
 function loginAccount(){
   let nick=document.getElementById("nickInput").value.trim();
   let found=users.find(u=>u.nick===nick);
-
   if(!found) return alert("No existe");
-
   user=found;
   localStorage.setItem("cg_user",JSON.stringify(user));
   applyLogin();
@@ -241,47 +137,34 @@ function applyLogin(){
 }
 
 function addPost(){
-  if(!user) return;
+  if(!user) return alert("Debes iniciar sesión");
 
   let text=document.getElementById("postInput");
-  let img=document.getElementById("imgInput");
+  let file=document.getElementById("postImageFile").files[0];
 
   if(!text.value.trim()) return;
 
-  posts.push({
-    user:user.nick,
-    avatar:user.avatar,
-    text:text.value,
-    img:img.value||null,
-    likes:0
-  });
+  if(file){
+    let r=new FileReader();
+    r.onload=e=>savePost(text.value,e.target.result);
+    r.readAsDataURL(file);
+  } else {
+    savePost(text.value,null);
+  }
 
   text.value="";
-  img.value="";
+  document.getElementById("postImageFile").value="";
+}
 
+function savePost(text,img){
+  posts.push({user:user.nick,avatar:user.avatar,text, img, likes:0});
   localStorage.setItem("cg_posts",JSON.stringify(posts));
   render();
 }
 
-function likePost(i){
-  let r=posts.length-1-i;
-  if(posts[r]){
-    posts[r].likes++;
-    save(); render();
-  }
-}
-
-function deletePost(i){
-  let r=posts.length-1-i;
-  if(posts[r]){
-    posts.splice(r,1);
-    save(); render();
-  }
-}
-
-function save(){
-  localStorage.setItem("cg_posts",JSON.stringify(posts));
-}
+function likePost(i){let r=posts.length-1-i;if(posts[r]){posts[r].likes++;save();render();}}
+function deletePost(i){let r=posts.length-1-i;if(posts[r]){posts.splice(r,1);save();render();}}
+function save(){localStorage.setItem("cg_posts",JSON.stringify(posts));}
 
 function render(){
   let feed=document.getElementById("feed");
@@ -291,18 +174,11 @@ function render(){
     let div=document.createElement("div");
     div.className="post";
 
-    let isImage = typeof p.avatar === "string" && p.avatar.startsWith("data");
-
-    let avatarHTML;
-
-    if(isImage){
-      avatarHTML = `<img src='${p.avatar}'>`;
-    } else {
-      avatarHTML = p.avatar || "?";
-    }
+    let isImage = typeof p.avatar==="string" && p.avatar.startsWith("data");
+    let avatarHTML = isImage ? `<img src='${p.avatar}'>` : (p.avatar||"?");
 
     div.innerHTML=`
-      <div class="avatar ${isImage ? 'img-mode' : ''}">${avatarHTML}</div>
+      <div class="avatar ${isImage?'img-mode':''}">${avatarHTML}</div>
       <div class="post-content">
         <b>${p.user}</b><br>
         ${p.text}
@@ -319,7 +195,8 @@ function render(){
   });
 }
 
-render();
+// AUTO LOGIN
+if(user){applyLogin();} else {render();}
 </script>
 
 </body>
