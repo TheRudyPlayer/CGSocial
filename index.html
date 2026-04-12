@@ -2,74 +2,21 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CGSocial BETA</title>
+<title>CGSocial 2.1</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
 
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0b1220;
-  color:white;
-  display:flex;
-}
-
-.sidebar{
-  width:220px;
-  background:#0f172a;
-  height:100vh;
-  padding:12px;
-}
-
-.menu-item{
-  padding:10px;
-  margin:6px 0;
-  background:#1f2937;
-  border-radius:10px;
-  cursor:pointer;
-}
-
-.main{
-  flex:1;
-  padding:18px;
-}
-
-header{
-  background:#111827;
-  padding:14px;
-  border-radius:12px;
-  text-align:center;
-}
-
-input{
-  width:100%;
-  padding:10px;
-  margin:5px 0;
-  border-radius:10px;
-  border:none;
-}
-
-button{
-  padding:10px;
-  border:none;
-  border-radius:10px;
-  background:#f59e0b;
-  cursor:pointer;
-  width:100%;
-}
-
-.post-box{display:none;margin:10px 0}
-
-.post{
-  background:#111827;
-  padding:12px;
-  border-radius:14px;
-  margin-top:10px;
-}
+body{margin:0;font-family:Arial;background:#0b1220;color:white;display:flex}
+.sidebar{width:200px;background:#0f172a;padding:10px}
+.menu-item{background:#1f2937;margin:5px;padding:10px;border-radius:10px;cursor:pointer}
+.main{flex:1;padding:15px}
+input{width:100%;margin:5px 0;padding:10px;border-radius:10px;border:none}
+button{width:100%;padding:10px;border:none;border-radius:10px;background:#f59e0b}
+.post{background:#111827;padding:10px;margin-top:10px;border-radius:10px}
+.like{background:#2563eb;margin-top:5px}
 </style>
 </head>
 <body>
@@ -80,22 +27,18 @@ button{
 
 <div class="main">
 
-<header id="status">Modo Invitado</header>
+<h3 id="status">Modo Invitado</h3>
 
-<!-- LOGIN / REGISTER -->
 <div id="authBox">
   <input id="email" placeholder="Correo">
   <input id="password" type="password" placeholder="Contraseña">
-  <input id="username" placeholder="Nombre visible">
-
-  <input type="file" id="avatar">
+  <input id="username" placeholder="Nombre">
 
   <button onclick="register()">Crear cuenta</button>
   <button onclick="login()">Iniciar sesión</button>
 </div>
 
-<!-- POSTS -->
-<div class="post-box" id="postBox">
+<div id="postBox" style="display:none;">
   <input id="postInput" placeholder="Escribe algo...">
   <button onclick="addPost()">Publicar</button>
 </div>
@@ -105,11 +48,10 @@ button{
 </div>
 
 <script>
-// 🔥 TU CONFIG
 const firebaseConfig = {
-  apiKey: "AIzaSyArVnNFSKQJJ0aWxblU7DtS_pGO4RJlZqk",
-  authDomain: "cgsocial.firebaseapp.com",
-  projectId: "cgsocial"
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_PROYECTO.firebaseapp.com",
+  projectId: "TU_PROYECTO_ID"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -117,100 +59,85 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-let currentUserData = null;
+let userData = null;
 
-// REGISTRO
+// REGISTER
 async function register(){
-  let email = document.getElementById("email").value;
-  let pass = document.getElementById("password").value;
-  let username = document.getElementById("username").value;
-  let file = document.getElementById("avatar").files[0];
+  try{
+    let email = emailInput.value;
+    let pass = passwordInput.value;
+    let name = usernameInput.value;
 
-  if(!email || !pass || !username){
-    return alert("Completa todo");
-  }
+    let cred = await auth.createUserWithEmailAndPassword(email, pass);
 
-  let userCred = await auth.createUserWithEmailAndPassword(email, pass);
-  let uid = userCred.user.uid;
-
-  let avatarBase64 = "";
-
-  if(file){
-    let reader = new FileReader();
-    reader.onload = async e=>{
-      avatarBase64 = e.target.result;
-
-      await db.collection("users").doc(uid).set({
-        username,
-        avatar: avatarBase64
-      });
-    };
-    reader.readAsDataURL(file);
-  }else{
-    await db.collection("users").doc(uid).set({
-      username,
-      avatar: username.charAt(0)
+    await db.collection("users").doc(cred.user.uid).set({
+      username: name
     });
-  }
 
-  alert("Cuenta creada");
+    alert("Cuenta creada ✅");
+  }catch(e){
+    alert(e.message);
+  }
 }
 
 // LOGIN
 async function login(){
-  let email = document.getElementById("email").value;
-  let pass = document.getElementById("password").value;
-
-  await auth.signInWithEmailAndPassword(email, pass);
+  try{
+    await auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value);
+  }catch(e){
+    alert(e.message);
+  }
 }
 
-// DETECTAR USUARIO
+// SESSION
 auth.onAuthStateChanged(async user=>{
-  let status = document.getElementById("status");
-  let box = document.getElementById("postBox");
-  let authBox = document.getElementById("authBox");
-
   if(user){
     let doc = await db.collection("users").doc(user.uid).get();
-    currentUserData = doc.data();
+    userData = doc.data();
 
-    status.textContent = "Usuario: " + currentUserData.username;
-
-    box.style.display = "block";
+    status.textContent = "Usuario: " + userData.username;
+    postBox.style.display = "block";
     authBox.style.display = "none";
-
   }else{
     status.textContent = "Modo Invitado";
-    box.style.display = "none";
+    postBox.style.display = "none";
     authBox.style.display = "block";
   }
 });
 
 // POST
 function addPost(){
-  let text = document.getElementById("postInput").value;
-
   db.collection("posts").add({
-    text,
-    user: currentUserData.username,
-    avatar: currentUserData.avatar,
+    user: userData.username,
+    text: postInput.value,
+    likes: 0,
     time: Date.now()
+  });
+
+  postInput.value = "";
+}
+
+// LIKE
+function likePost(id){
+  let ref = db.collection("posts").doc(id);
+  ref.update({
+    likes: firebase.firestore.FieldValue.increment(1)
   });
 }
 
 // FEED
 db.collection("posts").orderBy("time","desc")
-.onSnapshot(snapshot=>{
-  let feed = document.getElementById("feed");
-  feed.innerHTML = "";
-
-  snapshot.forEach(doc=>{
+.onSnapshot(snap=>{
+  feed.innerHTML="";
+  snap.forEach(doc=>{
     let p = doc.data();
 
     feed.innerHTML += `
       <div class="post">
         <b>${p.user}</b><br>
-        ${p.text}
+        ${p.text}<br>
+        👍 ${p.likes}
+        <button class="like" onclick="likePost('${doc.id}')">Like</button>
       </div>
     `;
   });
