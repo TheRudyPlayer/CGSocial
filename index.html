@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <title>CGSocial BETA</title>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+<!-- 🔥 FIREBASE CORRECTO (V8 = SIN BUGS) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <style>
 body{margin:0;font-family:Arial;background:#0b1220;color:white;display:flex}
@@ -17,6 +17,7 @@ input{width:100%;margin:5px 0;padding:10px;border-radius:10px;border:none}
 button{width:100%;padding:10px;border:none;border-radius:10px;background:#f59e0b;cursor:pointer}
 .post{background:#111827;padding:10px;margin-top:10px;border-radius:10px}
 .like{background:#2563eb;margin-top:5px}
+.logout{background:#dc2626;margin-top:10px}
 </style>
 </head>
 
@@ -33,7 +34,7 @@ button{width:100%;padding:10px;border:none;border-radius:10px;background:#f59e0b
 <div id="authBox">
   <input id="email" placeholder="Correo">
   <input id="password" type="password" placeholder="Contraseña">
-  <input id="username" placeholder="Nombre">
+  <input id="username" placeholder="Nombre (solo al crear)">
   <button onclick="register()">Crear cuenta</button>
   <button onclick="login()">Iniciar sesión</button>
 </div>
@@ -41,6 +42,7 @@ button{width:100%;padding:10px;border:none;border-radius:10px;background:#f59e0b
 <div id="postBox" style="display:none;">
   <input id="postInput" placeholder="Escribe algo...">
   <button onclick="addPost()">Publicar</button>
+  <button class="logout" onclick="logout()">Cerrar sesión</button>
 </div>
 
 <div id="feed"></div>
@@ -49,23 +51,22 @@ button{width:100%;padding:10px;border:none;border-radius:10px;background:#f59e0b
 
 <script>
 
-// 1. CONFIG (PON LA TUYA)
+// 🔥 PON TU CONFIG REAL AQUÍ
 const firebaseConfig = {
   apiKey: "AIzaSyArVnNFSKQJJ0aWxblU7DtS_pGO4RJlZqk",
   authDomain: "cgsocial.firebaseapp.com",
   projectId: "cgsocial"
 };
 
-// 2. INICIALIZAR PRIMERO
+// 🔥 INICIALIZAR
 firebase.initializeApp(firebaseConfig);
 
-// 3. CREAR VARIABLES DESPUÉS
 const auth = firebase.auth();
 const db = firebase.firestore();
 
 let userData = null;
 
-// REGISTER
+// 🔐 CREAR CUENTA
 async function register(){
   try{
     let email = document.getElementById("email").value.trim();
@@ -82,14 +83,14 @@ async function register(){
       username: name
     });
 
-    alert("Cuenta creada");
+    alert("Cuenta creada ✅");
 
   }catch(e){
     alert(e.message);
   }
 }
 
-// LOGIN
+// 🔑 LOGIN
 async function login(){
   try{
     let email = document.getElementById("email").value.trim();
@@ -106,7 +107,12 @@ async function login(){
   }
 }
 
-// SESIÓN
+// 🚪 LOGOUT
+function logout(){
+  auth.signOut();
+}
+
+// 👤 SESIÓN
 auth.onAuthStateChanged(async user=>{
   const status = document.getElementById("status");
   const postBox = document.getElementById("postBox");
@@ -127,7 +133,7 @@ auth.onAuthStateChanged(async user=>{
   }
 });
 
-// POST
+// 📝 POST
 function addPost(){
   let text = document.getElementById("postInput").value.trim();
 
@@ -143,14 +149,14 @@ function addPost(){
   document.getElementById("postInput").value = "";
 }
 
-// LIKE
+// 👍 LIKE
 function likePost(id){
   db.collection("posts").doc(id).update({
     likes: firebase.firestore.FieldValue.increment(1)
   });
 }
 
-// FEED
+// 🔥 FEED EN TIEMPO REAL
 db.collection("posts").orderBy("time","desc")
 .onSnapshot(snapshot=>{
   let feed = document.getElementById("feed");
