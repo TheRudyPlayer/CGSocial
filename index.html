@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>CGSocial BETA</title>
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
@@ -11,39 +12,14 @@
 <style>
 body{margin:0;font-family:Arial;background:#0b1220;color:white;display:flex}
 .sidebar{width:200px;background:#0f172a;padding:10px}
-.menu-item{background:#1f2937;margin:5px;padding:10px;border-radius:10px}
 .main{flex:1;padding:15px}
-
-input{
-  width:100%;
-  margin:5px 0;
-  padding:10px;
-  border-radius:10px;
-  border:none;
-}
-
-button{
-  width:100%;
-  padding:10px;
-  border:none;
-  border-radius:10px;
-  background:#f59e0b;
-  cursor:pointer;
-}
-
-.post{
-  background:#111827;
-  padding:10px;
-  margin-top:10px;
-  border-radius:10px;
-}
-
-.like{
-  background:#2563eb;
-  margin-top:5px;
-}
+input{width:100%;margin:5px 0;padding:10px;border-radius:10px;border:none}
+button{width:100%;padding:10px;border:none;border-radius:10px;background:#f59e0b;cursor:pointer}
+.post{background:#111827;padding:10px;margin-top:10px;border-radius:10px}
+.like{background:#2563eb;margin-top:5px}
 </style>
 </head>
+
 <body>
 
 <div class="sidebar">
@@ -58,7 +34,6 @@ button{
   <input id="email" placeholder="Correo">
   <input id="password" type="password" placeholder="Contraseña">
   <input id="username" placeholder="Nombre">
-
   <button onclick="register()">Crear cuenta</button>
   <button onclick="login()">Iniciar sesión</button>
 </div>
@@ -73,21 +48,24 @@ button{
 </div>
 
 <script>
-// 🔥 PON TU CONFIG
+
+// 1. CONFIG (PON LA TUYA)
 const firebaseConfig = {
   apiKey: "AIzaSyArVnNFSKQJJ0aWxblU7DtS_pGO4RJlZqk",
   authDomain: "cgsocial.firebaseapp.com",
   projectId: "cgsocial"
 };
 
+// 2. INICIALIZAR PRIMERO
 firebase.initializeApp(firebaseConfig);
 
+// 3. CREAR VARIABLES DESPUÉS
 const auth = firebase.auth();
 const db = firebase.firestore();
 
 let userData = null;
 
-// REGISTRO
+// REGISTER
 async function register(){
   try{
     let email = document.getElementById("email").value.trim();
@@ -105,6 +83,7 @@ async function register(){
     });
 
     alert("Cuenta creada");
+
   }catch(e){
     alert(e.message);
   }
@@ -121,6 +100,7 @@ async function login(){
     }
 
     await auth.signInWithEmailAndPassword(email, pass);
+
   }catch(e){
     alert(e.message);
   }
@@ -189,6 +169,7 @@ db.collection("posts").orderBy("time","desc")
     `;
   });
 });
+
 </script>
 
 </body>
