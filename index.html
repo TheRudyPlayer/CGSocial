@@ -2,9 +2,8 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>CGSocial BETA</title>
+<title>CGSocial 2.3</title>
 
-<!-- 🔥 FIREBASE CORRECTO (V8 = SIN BUGS) -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -12,53 +11,58 @@
 <style>
 body{margin:0;font-family:Arial;background:#0b1220;color:white;display:flex}
 .sidebar{width:200px;background:#0f172a;padding:10px}
+.menu-item{background:#1f2937;margin:5px 0;padding:10px;border-radius:10px;cursor:pointer}
 .main{flex:1;padding:15px}
+.fab{position:fixed;bottom:20px;left:20px;width:55px;height:55px;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;font-size:25px;cursor:pointer}
 input{width:100%;margin:5px 0;padding:10px;border-radius:10px;border:none}
-button{width:100%;padding:10px;border:none;border-radius:10px;background:#f59e0b;cursor:pointer}
+button{width:100%;padding:10px;border:none;border-radius:10px;background:#f59e0b}
 .post{background:#111827;padding:10px;margin-top:10px;border-radius:10px}
 .like{background:#2563eb;margin-top:5px}
-.logout{background:#dc2626;margin-top:10px}
+.panel{display:none;background:#0f172a;padding:10px;border-radius:10px;margin-bottom:10px}
+.avatar{width:35px;height:35px;border-radius:50%;background:#f59e0b;display:flex;align-items:center;justify-content:center;margin-bottom:5px}
 </style>
 </head>
 
 <body>
 
 <div class="sidebar">
-  <h3>🐔 CGSocial</h3>
+<h3>🐔 CGSocial</h3>
+<div class="menu-item" onclick="togglePanel()">👤 Perfil</div>
 </div>
 
 <div class="main">
 
 <h3 id="status">Modo Invitado</h3>
 
-<div id="authBox">
-  <input id="email" placeholder="Correo">
-  <input id="password" type="password" placeholder="Contraseña">
-  <input id="username" placeholder="Nombre (solo al crear)">
-  <button onclick="register()">Crear cuenta</button>
-  <button onclick="login()">Iniciar sesión</button>
+<div id="panel" class="panel">
+<input id="email" placeholder="Correo">
+<input id="password" type="password" placeholder="Contraseña">
+<input id="username" placeholder="Nombre">
+<button onclick="register()">Crear cuenta</button>
+<button onclick="login()">Iniciar sesión</button>
+<button onclick="logout()" style="background:#dc2626">Cerrar sesión</button>
 </div>
 
 <div id="postBox" style="display:none;">
-  <input id="postInput" placeholder="Escribe algo...">
-  <button onclick="addPost()">Publicar</button>
-  <button class="logout" onclick="logout()">Cerrar sesión</button>
+<input id="postInput" placeholder="Escribe algo...">
+<input type="file" id="imgPost" accept="image/*">
+<button onclick="addPost()">Publicar</button>
 </div>
 
 <div id="feed"></div>
 
 </div>
 
+<div class="fab" onclick="togglePanel()">+</div>
+
 <script>
 
-// 🔥 PON TU CONFIG REAL AQUÍ
 const firebaseConfig = {
-  apiKey: "AIzaSyArVnNFSKQJJ0aWxblU7DtS_pGO4RJlZqk",
-  authDomain: "cgsocial.firebaseapp.com",
-  projectId: "cgsocial"
+apiKey: "AIzaSyArVnNFSKQJJ0aWxblU7DtS_pGO4RJlZqk",
+authDomain: "cgsocial.firebaseapp.com",
+projectId: "cgsocial"
 };
 
-// 🔥 INICIALIZAR
 firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
@@ -66,114 +70,144 @@ const db = firebase.firestore();
 
 let userData = null;
 
-// 🔐 CREAR CUENTA
+function togglePanel(){
+let p=document.getElementById("panel");
+p.style.display = p.style.display==="block"?"none":"block";
+}
+
+// REGISTER
 async function register(){
-  try{
-    let email = document.getElementById("email").value.trim();
-    let pass = document.getElementById("password").value.trim();
-    let name = document.getElementById("username").value.trim();
+try{
+let email=document.getElementById("email").value.trim();
+let pass=document.getElementById("password").value.trim();
+let name=document.getElementById("username").value.trim();
 
-    if(!email || !pass || !name){
-      return alert("Completa todos los campos");
-    }
+if(!email||!pass||!name)return alert("Completa todo");
 
-    let cred = await auth.createUserWithEmailAndPassword(email, pass);
+// nombre único
+let snap=await db.collection("users").get();
+let existe=snap.docs.some(d=>d.data().username.toLowerCase()===name.toLowerCase());
+if(existe)return alert("Nombre ya en uso");
 
-    await db.collection("users").doc(cred.user.uid).set({
-      username: name
-    });
+let cred=await auth.createUserWithEmailAndPassword(email,pass);
 
-    alert("Cuenta creada ✅");
-
-  }catch(e){
-    alert(e.message);
-  }
-}
-
-// 🔑 LOGIN
-async function login(){
-  try{
-    let email = document.getElementById("email").value.trim();
-    let pass = document.getElementById("password").value.trim();
-
-    if(!email || !pass){
-      return alert("Faltan datos");
-    }
-
-    await auth.signInWithEmailAndPassword(email, pass);
-
-  }catch(e){
-    alert(e.message);
-  }
-}
-
-// 🚪 LOGOUT
-function logout(){
-  auth.signOut();
-}
-
-// 👤 SESIÓN
-auth.onAuthStateChanged(async user=>{
-  const status = document.getElementById("status");
-  const postBox = document.getElementById("postBox");
-  const authBox = document.getElementById("authBox");
-
-  if(user){
-    let doc = await db.collection("users").doc(user.uid).get();
-    userData = doc.data();
-
-    status.textContent = "Usuario: " + userData.username;
-
-    postBox.style.display = "block";
-    authBox.style.display = "none";
-  }else{
-    status.textContent = "Modo Invitado";
-    postBox.style.display = "none";
-    authBox.style.display = "block";
-  }
+await db.collection("users").doc(cred.user.uid).set({
+username:name
 });
 
-// 📝 POST
-function addPost(){
-  let text = document.getElementById("postInput").value.trim();
-
-  if(!text) return;
-
-  db.collection("posts").add({
-    user: userData.username,
-    text: text,
-    likes: 0,
-    time: Date.now()
-  });
-
-  document.getElementById("postInput").value = "";
+alert("Cuenta creada");
+}catch(e){alert(e.message);}
 }
 
-// 👍 LIKE
+// LOGIN
+async function login(){
+try{
+let email=document.getElementById("email").value.trim();
+let pass=document.getElementById("password").value.trim();
+await auth.signInWithEmailAndPassword(email,pass);
+}catch(e){alert(e.message);}
+}
+
+// LOGOUT
+function logout(){auth.signOut();}
+
+// SESSION
+auth.onAuthStateChanged(async user=>{
+if(user){
+let doc=await db.collection("users").doc(user.uid).get();
+userData=doc.data();
+status.textContent="Usuario: "+userData.username;
+postBox.style.display="block";
+panel.style.display="none";
+}else{
+status.textContent="Modo Invitado";
+postBox.style.display="none";
+}
+});
+
+// COMPRESIÓN IMAGEN
+function compressImage(file){
+return new Promise(resolve=>{
+let reader=new FileReader();
+reader.onload=e=>{
+let img=new Image();
+img.src=e.target.result;
+img.onload=()=>{
+let canvas=document.createElement("canvas");
+let max=400;
+let scale=Math.min(max/img.width,max/img.height);
+canvas.width=img.width*scale;
+canvas.height=img.height*scale;
+let ctx=canvas.getContext("2d");
+ctx.drawImage(img,0,0,canvas.width,canvas.height);
+resolve(canvas.toDataURL("image/jpeg",0.7));
+};
+};
+reader.readAsDataURL(file);
+});
+}
+
+// POST
+async function addPost(){
+if(!userData)return alert("Inicia sesión");
+
+let text=document.getElementById("postInput").value.trim();
+let file=document.getElementById("imgPost").files[0];
+let img=null;
+
+if(file){
+img=await compressImage(file);
+}
+
+db.collection("posts").add({
+user:userData.username,
+text:text,
+img:img,
+likes:0,
+time:Date.now(),
+uid:auth.currentUser.uid
+});
+
+postInput.value="";
+imgPost.value="";
+}
+
+// LIKE
 function likePost(id){
-  db.collection("posts").doc(id).update({
-    likes: firebase.firestore.FieldValue.increment(1)
-  });
+if(!auth.currentUser)return alert("Inicia sesión");
+
+db.collection("posts").doc(id).update({
+likes:firebase.firestore.FieldValue.increment(1)
+});
 }
 
-// 🔥 FEED EN TIEMPO REAL
+// DELETE
+function deletePost(id,uid){
+if(auth.currentUser.uid!==uid)return alert("No puedes borrar esto");
+db.collection("posts").doc(id).delete();
+}
+
+// FEED
 db.collection("posts").orderBy("time","desc")
-.onSnapshot(snapshot=>{
-  let feed = document.getElementById("feed");
-  feed.innerHTML = "";
+.onSnapshot(snap=>{
+feed.innerHTML="";
+snap.forEach(doc=>{
+let p=doc.data();
 
-  snapshot.forEach(doc=>{
-    let p = doc.data();
+let verified=p.user==="TheRudyPlayer"?"✔️":"";
+let avatar=p.user.charAt(0).toUpperCase();
 
-    feed.innerHTML += `
-      <div class="post">
-        <b>${p.user}</b><br>
-        ${p.text}<br>
-        👍 ${p.likes}
-        <button class="like" onclick="likePost('${doc.id}')">Like</button>
-      </div>
-    `;
-  });
+feed.innerHTML+=`
+<div class="post">
+<div class="avatar">${avatar}</div>
+<b>${p.user} ${verified}</b><br>
+${p.text}<br>
+${p.img?`<img src="${p.img}" style="max-width:100%;max-height:250px;border-radius:10px;">`:""}
+👍 ${p.likes}
+<button class="like" onclick="likePost('${doc.id}')">Like</button>
+${auth.currentUser && auth.currentUser.uid===p.uid?`<button onclick="deletePost('${doc.id}','${p.uid}')">🗑️</button>`:""}
+</div>`;
+});
 });
 
 </script>
