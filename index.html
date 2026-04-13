@@ -13,13 +13,13 @@ body{margin:0;font-family:Arial;background:#0b1220;color:white;display:flex}
 .sidebar{width:200px;background:#0f172a;padding:10px}
 .menu-item{background:#1f2937;margin:5px 0;padding:10px;border-radius:10px;cursor:pointer}
 .main{flex:1;padding:15px}
-.fab{position:fixed;bottom:20px;left:20px;width:55px;height:55px;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;font-size:25px;cursor:pointer}
 input{width:100%;margin:5px 0;padding:10px;border-radius:10px;border:none}
-button{width:100%;padding:10px;border:none;border-radius:10px;background:#f59e0b;cursor:pointer}
+button{width:100%;padding:10px;border:none;border-radius:10px;background:#f59e0b}
 .post{background:#111827;padding:10px;margin-top:10px;border-radius:10px}
 .like{background:#2563eb;margin-top:5px}
 .panel{display:none;background:#0f172a;padding:10px;border-radius:10px;margin-bottom:10px}
-.avatar{width:35px;height:35px;border-radius:50%;background:#f59e0b;display:flex;align-items:center;justify-content:center;margin-bottom:5px}
+.avatar{width:40px;height:40px;border-radius:50%;background:#f59e0b;display:flex;align-items:center;justify-content:center;margin-bottom:5px;overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover}
 img{max-width:100%;max-height:250px;border-radius:10px;margin-top:5px}
 .delete{background:#dc2626;margin-top:5px}
 </style>
@@ -37,12 +37,23 @@ img{max-width:100%;max-height:250px;border-radius:10px;margin-top:5px}
 <h3 id="status">Modo Invitado</h3>
 
 <div id="panel" class="panel">
+
+<!-- INVITADO -->
+<div id="guestPanel">
 <input id="email" placeholder="Correo">
 <input id="password" type="password" placeholder="Contraseña">
 <input id="username" placeholder="Nombre">
 <button onclick="register()">Crear cuenta</button>
 <button onclick="login()">Iniciar sesión</button>
+</div>
+
+<!-- USER -->
+<div id="userPanel" style="display:none;">
+<input type="file" id="profileImg" accept="image/*">
+<button onclick="changeProfile()">Cambiar foto de perfil</button>
 <button onclick="logout()" style="background:#dc2626">Cerrar sesión</button>
+</div>
+
 </div>
 
 <div id="postBox" style="display:none;">
@@ -55,14 +66,12 @@ img{max-width:100%;max-height:250px;border-radius:10px;margin-top:5px}
 
 </div>
 
-<div class="fab" onclick="togglePanel()">+</div>
-
 <script>
 
 const firebaseConfig = {
-apiKey: "AIzaSyArVnNFSKQJJ0aWxblU7DtS_pGO4RJlZqk",
-authDomain: "cgsocial.firebaseapp.com",
-projectId: "cgsocial"
+apiKey:"AIzaSyArVnNFSKQJJ0aWxblU7DtS_pGO4RJlZqk",
+authDomain:"cgsocial.firebaseapp.com",
+projectId:"cgsocial"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -70,51 +79,69 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-let userData = null;
-let isOwner = false;
+let userData=null;
+let isOwner=false;
 
 // PANEL
 function togglePanel(){
-let p=document.getElementById("panel");
-p.style.display = p.style.display==="block"?"none":"block";
+panel.style.display=panel.style.display==="block"?"none":"block";
+}
+
+// TIEMPO
+function tiempo(t){
+let diff = Math.floor((Date.now()-t)/1000);
+
+if(diff<60) return diff+"s";
+if(diff<3600) return Math.floor(diff/60)+" min";
+if(diff<86400) return Math.floor(diff/3600)+" h";
+if(diff<31536000) return Math.floor(diff/86400)+" d";
+return Math.floor(diff/31536000)+" a";
 }
 
 // REGISTER
 async function register(){
 try{
-let email=document.getElementById("email").value.trim();
-let pass=document.getElementById("password").value.trim();
-let name=document.getElementById("username").value.trim();
+let email=emailInput.value.trim();
+let pass=passwordInput.value.trim();
+let name=usernameInput.value.trim();
 
-if(!email||!pass||!name)return alert("Completa todo");
-
-// 🔒 nombre único
-let nameLower=name.toLowerCase();
 let snap=await db.collection("users").get();
-let existe=snap.docs.some(d=>d.data().username.toLowerCase()===nameLower);
-if(existe)return alert("Ese nombre ya existe");
+let existe=snap.docs.some(d=>d.data().username.toLowerCase()===name.toLowerCase());
+if(existe)return alert("Nombre en uso");
 
 let cred=await auth.createUserWithEmailAndPassword(email,pass);
 
 await db.collection("users").doc(cred.user.uid).set({
-username:name
+username:name,
+photo:null
 });
-
-alert("Cuenta creada");
 }catch(e){alert(e.message);}
 }
 
 // LOGIN
 async function login(){
 try{
-let email=document.getElementById("email").value.trim();
-let pass=document.getElementById("password").value.trim();
-await auth.signInWithEmailAndPassword(email,pass);
+await auth.signInWithEmailAndPassword(emailInput.value,passwordInput.value);
 }catch(e){alert(e.message);}
 }
 
 // LOGOUT
 function logout(){auth.signOut();}
+
+// FOTO PERFIL
+async function changeProfile(){
+let file=document.getElementById("profileImg").files[0];
+if(!file)return;
+
+let reader=new FileReader();
+reader.onload=async e=>{
+await db.collection("users").doc(auth.currentUser.uid).update({
+photo:e.target.result
+});
+alert("Foto actualizada");
+};
+reader.readAsDataURL(file);
+}
 
 // SESSION
 auth.onAuthStateChanged(async user=>{
@@ -122,15 +149,19 @@ if(user){
 let doc=await db.collection("users").doc(user.uid).get();
 userData=doc.data();
 
-isOwner = userData.username === "TheRudyPlayer";
+isOwner=userData.username==="TheRudyPlayer";
 
-status.textContent="Usuario: "+userData.username+(isOwner?" ✔️":"");
+status.textContent="Usuario: "+userData.username+(isOwner?" ✓":"");
 
 postBox.style.display="block";
-panel.style.display="none";
+guestPanel.style.display="none";
+userPanel.style.display="block";
+
 }else{
 status.textContent="Modo Invitado";
 postBox.style.display="none";
+guestPanel.style.display="block";
+userPanel.style.display="none";
 }
 });
 
@@ -158,15 +189,11 @@ reader.readAsDataURL(file);
 
 // POST
 async function addPost(){
-if(!userData)return alert("Inicia sesión");
-
-let text=document.getElementById("postInput").value.trim();
-let file=document.getElementById("imgPost").files[0];
+let text=postInput.value.trim();
+let file=imgPost.files[0];
 let img=null;
 
-if(file){
-img=await compressImage(file);
-}
+if(file) img=await compressImage(file);
 
 db.collection("posts").add({
 user:userData.username,
@@ -191,16 +218,11 @@ likes:firebase.firestore.FieldValue.increment(1)
 }
 
 // DELETE
-function deletePost(id, uid){
-if(!auth.currentUser)return;
-
-if(isOwner){
+function deletePost(id,uid){
+if(isOwner || auth.currentUser.uid===uid){
 db.collection("posts").doc(id).delete();
 }else{
-if(auth.currentUser.uid!==uid){
-return alert("No puedes borrar esto");
-}
-db.collection("posts").doc(id).delete();
+alert("No puedes borrar esto");
 }
 }
 
@@ -211,18 +233,20 @@ feed.innerHTML="";
 snap.forEach(doc=>{
 let p=doc.data();
 
-let verified=p.user==="TheRudyPlayer"?"✔️":"";
 let avatar=p.user.charAt(0).toUpperCase();
+let verified=p.user==="TheRudyPlayer"?"✓":"";
 
 feed.innerHTML+=`
 <div class="post">
-<div class="avatar">${avatar}</div>
-<b>${p.user} ${verified}</b><br>
+<div class="avatar">
+${p.photo?`<img src="${p.photo}">`:avatar}
+</div>
+<b>${p.user} ${verified}</b> · ${tiempo(p.time)}<br>
 ${p.text}<br>
 ${p.img?`<img src="${p.img}">`:""}
 👍 ${p.likes}
 <button class="like" onclick="likePost('${doc.id}')">Like</button>
-${(auth.currentUser && (auth.currentUser.uid===p.uid || isOwner))?`<button class="delete" onclick="deletePost('${doc.id}','${p.uid}')">🗑️</button>`:""}
+${(auth.currentUser&&(auth.currentUser.uid===p.uid||isOwner))?`<button class="delete" onclick="deletePost('${doc.id}','${p.uid}')">🗑️</button>`:""}
 </div>`;
 });
 });
