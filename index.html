@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>CGSocial 2.3</title>
+<title>CGSocial BETA</title>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -15,11 +15,13 @@ body{margin:0;font-family:Arial;background:#0b1220;color:white;display:flex}
 .main{flex:1;padding:15px}
 .fab{position:fixed;bottom:20px;left:20px;width:55px;height:55px;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;font-size:25px;cursor:pointer}
 input{width:100%;margin:5px 0;padding:10px;border-radius:10px;border:none}
-button{width:100%;padding:10px;border:none;border-radius:10px;background:#f59e0b}
+button{width:100%;padding:10px;border:none;border-radius:10px;background:#f59e0b;cursor:pointer}
 .post{background:#111827;padding:10px;margin-top:10px;border-radius:10px}
 .like{background:#2563eb;margin-top:5px}
 .panel{display:none;background:#0f172a;padding:10px;border-radius:10px;margin-bottom:10px}
 .avatar{width:35px;height:35px;border-radius:50%;background:#f59e0b;display:flex;align-items:center;justify-content:center;margin-bottom:5px}
+img{max-width:100%;max-height:250px;border-radius:10px;margin-top:5px}
+.delete{background:#dc2626;margin-top:5px}
 </style>
 </head>
 
@@ -69,7 +71,9 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 let userData = null;
+let isOwner = false;
 
+// PANEL
 function togglePanel(){
 let p=document.getElementById("panel");
 p.style.display = p.style.display==="block"?"none":"block";
@@ -84,10 +88,11 @@ let name=document.getElementById("username").value.trim();
 
 if(!email||!pass||!name)return alert("Completa todo");
 
-// nombre único
+// 🔒 nombre único
+let nameLower=name.toLowerCase();
 let snap=await db.collection("users").get();
-let existe=snap.docs.some(d=>d.data().username.toLowerCase()===name.toLowerCase());
-if(existe)return alert("Nombre ya en uso");
+let existe=snap.docs.some(d=>d.data().username.toLowerCase()===nameLower);
+if(existe)return alert("Ese nombre ya existe");
 
 let cred=await auth.createUserWithEmailAndPassword(email,pass);
 
@@ -116,7 +121,11 @@ auth.onAuthStateChanged(async user=>{
 if(user){
 let doc=await db.collection("users").doc(user.uid).get();
 userData=doc.data();
-status.textContent="Usuario: "+userData.username;
+
+isOwner = userData.username === "TheRudyPlayer";
+
+status.textContent="Usuario: "+userData.username+(isOwner?" ✔️":"");
+
 postBox.style.display="block";
 panel.style.display="none";
 }else{
@@ -125,7 +134,7 @@ postBox.style.display="none";
 }
 });
 
-// COMPRESIÓN IMAGEN
+// COMPRESIÓN
 function compressImage(file){
 return new Promise(resolve=>{
 let reader=new FileReader();
@@ -182,9 +191,17 @@ likes:firebase.firestore.FieldValue.increment(1)
 }
 
 // DELETE
-function deletePost(id,uid){
-if(auth.currentUser.uid!==uid)return alert("No puedes borrar esto");
+function deletePost(id, uid){
+if(!auth.currentUser)return;
+
+if(isOwner){
 db.collection("posts").doc(id).delete();
+}else{
+if(auth.currentUser.uid!==uid){
+return alert("No puedes borrar esto");
+}
+db.collection("posts").doc(id).delete();
+}
 }
 
 // FEED
@@ -202,10 +219,10 @@ feed.innerHTML+=`
 <div class="avatar">${avatar}</div>
 <b>${p.user} ${verified}</b><br>
 ${p.text}<br>
-${p.img?`<img src="${p.img}" style="max-width:100%;max-height:250px;border-radius:10px;">`:""}
+${p.img?`<img src="${p.img}">`:""}
 👍 ${p.likes}
 <button class="like" onclick="likePost('${doc.id}')">Like</button>
-${auth.currentUser && auth.currentUser.uid===p.uid?`<button onclick="deletePost('${doc.id}','${p.uid}')">🗑️</button>`:""}
+${(auth.currentUser && (auth.currentUser.uid===p.uid || isOwner))?`<button class="delete" onclick="deletePost('${doc.id}','${p.uid}')">🗑️</button>`:""}
 </div>`;
 });
 });
