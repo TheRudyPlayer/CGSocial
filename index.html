@@ -16,17 +16,38 @@ body{margin:0;font-family:Arial;background:#0b1220;color:white;display:flex}
 input{width:100%;margin:5px 0;padding:10px;border-radius:10px;border:none}
 button{width:100%;padding:10px;border:none;border-radius:10px;background:#f59e0b}
 .post{background:#111827;padding:10px;margin-top:10px;border-radius:10px}
+
+/* AVATAR */
+.avatar{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  background:#f59e0b;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  font-weight:bold;
+  font-size:18px;
+  border:2px solid #1f2937;
+}
+
+.avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  display:block;
+}
+
 .like{background:#2563eb;margin-top:5px}
-.avatar{width:40px;height:40px;border-radius:50%;background:#f59e0b;display:flex;align-items:center;justify-content:center;margin-bottom:5px;overflow:hidden}
-.avatar img{width:100%;height:100%;object-fit:cover}
-img{max-width:100%;max-height:250px;border-radius:10px;margin-top:5px}
 .delete{background:#dc2626;margin-top:5px}
+img{max-width:100%;max-height:250px;border-radius:10px;margin-top:5px}
 </style>
 </head>
 
 <body>
 
-<!-- SIDEBAR -->
 <div class="sidebar">
 <h3>🐔 CGSocial</h3>
 <div class="menu-item" onclick="showFeed()">🏠 Feed</div>
@@ -37,7 +58,6 @@ img{max-width:100%;max-height:250px;border-radius:10px;margin-top:5px}
 
 <!-- FEED -->
 <div id="feedView">
-
 <h3 id="status">Modo Invitado</h3>
 
 <div id="postBox" style="display:none;">
@@ -47,12 +67,10 @@ img{max-width:100%;max-height:250px;border-radius:10px;margin-top:5px}
 </div>
 
 <div id="feed"></div>
-
 </div>
 
 <!-- PERFIL -->
 <div id="profileView" style="display:none;">
-
 <h3>Perfil</h3>
 
 <div id="guestPanel">
@@ -65,7 +83,7 @@ img{max-width:100%;max-height:250px;border-radius:10px;margin-top:5px}
 
 <div id="userPanel" style="display:none;">
 <input type="file" id="profileImg" accept="image/png, image/jpeg, image/webp">
-<button onclick="changeProfile()">Cambiar foto de perfil</button>
+<button onclick="changeProfile()">Cambiar foto</button>
 <button onclick="logout()" style="background:#dc2626">Cerrar sesión</button>
 </div>
 
@@ -75,7 +93,7 @@ img{max-width:100%;max-height:250px;border-radius:10px;margin-top:5px}
 
 <script>
 
-// 🔥 CONFIG
+// CONFIG
 const firebaseConfig={
 apiKey:"AIzaSyArVnNFSKQJJ0aWxblU7DtS_pGO4RJlZqk",
 authDomain:"cgsocial.firebaseapp.com",
@@ -90,7 +108,7 @@ const db=firebase.firestore();
 let userData=null;
 let isOwner=false;
 
-// 🔁 VISTAS
+// VISTAS
 function showFeed(){
 feedView.style.display="block";
 profileView.style.display="none";
@@ -101,7 +119,7 @@ feedView.style.display="none";
 profileView.style.display="block";
 }
 
-// ⏱️ TIEMPO
+// TIEMPO
 function tiempo(t){
 let diff=Math.floor((Date.now()-t)/1000);
 if(diff<60)return diff+"s";
@@ -111,7 +129,7 @@ if(diff<31536000)return Math.floor(diff/86400)+" d";
 return Math.floor(diff/31536000)+" a";
 }
 
-// 🧾 REGISTER
+// REGISTER
 async function register(){
 try{
 let email=email.value.trim();
@@ -120,7 +138,6 @@ let name=username.value.trim();
 
 if(!email||!pass||!name)return alert("Completa todo");
 
-// nombre único
 let snap=await db.collection("users").get();
 let existe=snap.docs.some(d=>d.data().username.toLowerCase()===name.toLowerCase());
 if(existe)return alert("Nombre en uso");
@@ -136,17 +153,17 @@ alert("Cuenta creada");
 }catch(e){alert(e.message);}
 }
 
-// 🔐 LOGIN
+// LOGIN
 async function login(){
 try{
 await auth.signInWithEmailAndPassword(email.value,password.value);
 }catch(e){alert(e.message);}
 }
 
-// 🚪 LOGOUT
+// LOGOUT
 function logout(){auth.signOut();}
 
-// 🖼️ FOTO PERFIL
+// FOTO PERFIL
 async function changeProfile(){
 let file=profileImg.files[0];
 if(!file)return alert("Selecciona imagen");
@@ -165,13 +182,13 @@ photo:base64
 
 userData.photo=base64;
 
-alert("Foto actualizada ✅");
+alert("Foto actualizada");
 };
 
 reader.readAsDataURL(file);
 }
 
-// 👤 SESSION
+// SESSION
 auth.onAuthStateChanged(async user=>{
 if(user){
 let doc=await db.collection("users").doc(user.uid).get();
@@ -193,7 +210,7 @@ userPanel.style.display="none";
 }
 });
 
-// 🖼️ COMPRESIÓN
+// COMPRESIÓN
 function compressImage(file){
 return new Promise(resolve=>{
 let reader=new FileReader();
@@ -215,7 +232,7 @@ reader.readAsDataURL(file);
 });
 }
 
-// 📝 POST
+// POST
 async function addPost(){
 if(!auth.currentUser)return alert("Inicia sesión");
 
@@ -239,7 +256,7 @@ postInput.value="";
 imgPost.value="";
 }
 
-// 👍 LIKE
+// LIKE
 function likePost(id){
 if(!auth.currentUser)return alert("Inicia sesión");
 
@@ -248,7 +265,7 @@ likes:firebase.firestore.FieldValue.increment(1)
 });
 }
 
-// 🗑️ DELETE
+// DELETE
 function deletePost(id,uid){
 if(isOwner||auth.currentUser.uid===uid){
 db.collection("posts").doc(id).delete();
@@ -257,7 +274,7 @@ alert("No puedes borrar esto");
 }
 }
 
-// 🔥 FEED
+// FEED
 db.collection("posts").orderBy("time","desc")
 .onSnapshot(snap=>{
 feed.innerHTML="";
@@ -265,9 +282,10 @@ feed.innerHTML="";
 snap.forEach(doc=>{
 let p=doc.data();
 
-let avatar=p.photo
-? `<img src="${p.photo}">`
-: p.user.charAt(0).toUpperCase();
+// AVATAR
+let avatar = p.photo
+  ? `<img src="${p.photo}">`
+  : `<span>${p.user.charAt(0).toUpperCase()}</span>`;
 
 let verified=p.user==="TheRudyPlayer"?"✓":"";
 
