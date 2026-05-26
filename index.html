@@ -2,89 +2,470 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>CGSocial BETA</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>CGSocial NEXT</title>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-<style>
-body{margin:0;font-family:Arial;background:#0b1220;color:white;display:flex}
-.sidebar{width:200px;background:#0f172a;padding:10px}
-.menu-item{background:#1f2937;margin:5px 0;padding:10px;border-radius:10px;cursor:pointer}
-.main{flex:1;padding:15px}
-input{width:100%;margin:5px 0;padding:10px;border-radius:10px;border:none}
-button{width:100%;padding:10px;border:none;border-radius:10px;background:#f59e0b}
-.post{background:#111827;padding:10px;margin-top:10px;border-radius:10px}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-/* AVATAR */
+<style>
+
+:root{
+--bg:#050816;
+--card:#0f172a;
+--card2:#111827;
+--line:#1e293b;
+--text:#ffffff;
+--sub:#94a3b8;
+--accent:#f59e0b;
+--accent2:#f97316;
+--danger:#ef4444;
+--like:#2563eb;
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:"Inter",sans-serif;
+}
+
+body{
+background:linear-gradient(180deg,#020617,#0f172a);
+color:var(--text);
+display:flex;
+min-height:100vh;
+overflow:hidden;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+width:240px;
+background:rgba(15,23,42,.85);
+backdrop-filter:blur(20px);
+border-right:1px solid var(--line);
+padding:20px;
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.logo{
+font-size:28px;
+font-weight:800;
+margin-bottom:15px;
+background:linear-gradient(90deg,var(--accent),var(--accent2));
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+.menu-item{
+background:transparent;
+padding:14px;
+border-radius:16px;
+cursor:pointer;
+transition:.2s;
+font-weight:600;
+color:#cbd5e1;
+}
+
+.menu-item:hover{
+background:#1e293b;
+transform:translateX(4px);
+}
+
+/* MAIN */
+
+.main{
+flex:1;
+overflow-y:auto;
+padding:25px;
+}
+
+.topbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+}
+
+.status{
+font-size:14px;
+color:var(--sub);
+}
+
+.feed-grid{
+display:grid;
+grid-template-columns:1fr;
+gap:15px;
+max-width:700px;
+margin:auto;
+}
+
+/* CREATE POST */
+
+.create-post{
+background:rgba(15,23,42,.8);
+backdrop-filter:blur(16px);
+border:1px solid var(--line);
+padding:18px;
+border-radius:24px;
+margin-bottom:20px;
+box-shadow:0 0 30px rgba(0,0,0,.25);
+}
+
+textarea{
+width:100%;
+resize:none;
+border:none;
+outline:none;
+background:#0b1220;
+color:white;
+padding:15px;
+border-radius:18px;
+font-size:15px;
+min-height:110px;
+margin-bottom:10px;
+}
+
+.post-actions{
+display:flex;
+gap:10px;
+align-items:center;
+}
+
+.file-label{
+background:#1e293b;
+padding:12px 16px;
+border-radius:14px;
+cursor:pointer;
+font-size:14px;
+font-weight:600;
+transition:.2s;
+}
+
+.file-label:hover{
+background:#334155;
+}
+
+input[type=file]{
+display:none;
+}
+
+button{
+border:none;
+cursor:pointer;
+transition:.2s;
+font-weight:700;
+}
+
+.publish{
+background:linear-gradient(90deg,var(--accent),var(--accent2));
+padding:12px 18px;
+border-radius:14px;
+color:black;
+margin-left:auto;
+}
+
+.publish:hover{
+transform:scale(1.04);
+}
+
+/* POSTS */
+
+.post{
+background:rgba(15,23,42,.85);
+backdrop-filter:blur(20px);
+border:1px solid var(--line);
+border-radius:24px;
+padding:18px;
+animation:show .25s ease;
+box-shadow:0 0 25px rgba(0,0,0,.2);
+}
+
+@keyframes show{
+from{
+opacity:0;
+transform:translateY(10px);
+}
+to{
+opacity:1;
+transform:none;
+}
+}
+
+.post-top{
+display:flex;
+align-items:center;
+gap:12px;
+margin-bottom:12px;
+}
+
 .avatar{
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  background:#f59e0b;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-  font-weight:bold;
-  font-size:18px;
-  border:2px solid #1f2937;
+width:48px;
+height:48px;
+border-radius:50%;
+overflow:hidden;
+background:linear-gradient(135deg,var(--accent),var(--accent2));
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:800;
+font-size:20px;
+color:black;
+flex-shrink:0;
 }
 
 .avatar img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  object-position:center;
-  display:block;
+width:100%;
+height:100%;
+object-fit:cover;
 }
 
-.like{background:#2563eb;margin-top:5px}
-.delete{background:#dc2626;margin-top:5px}
-img{max-width:100%;max-height:250px;border-radius:10px;margin-top:5px}
+.user-info{
+display:flex;
+flex-direction:column;
+}
+
+.username{
+font-weight:700;
+font-size:15px;
+}
+
+.time{
+font-size:12px;
+color:var(--sub);
+}
+
+.verify{
+color:#38bdf8;
+font-size:14px;
+}
+
+.post-text{
+font-size:15px;
+line-height:1.5;
+word-break:break-word;
+margin-bottom:12px;
+}
+
+.post img{
+width:100%;
+border-radius:20px;
+max-height:420px;
+object-fit:cover;
+margin-top:10px;
+border:1px solid #1e293b;
+}
+
+.post-bottom{
+display:flex;
+gap:10px;
+margin-top:15px;
+}
+
+.action-btn{
+flex:1;
+padding:12px;
+border-radius:14px;
+background:#172033;
+color:white;
+}
+
+.action-btn:hover{
+background:#243041;
+}
+
+.like-btn.active{
+background:#1d4ed8;
+}
+
+.delete-btn{
+background:#3b1111;
+color:#fca5a5;
+}
+
+.delete-btn:hover{
+background:#521515;
+}
+
+/* PROFILE */
+
+.profile-card{
+background:rgba(15,23,42,.85);
+border:1px solid var(--line);
+padding:25px;
+border-radius:26px;
+max-width:450px;
+margin:auto;
+}
+
+.profile-avatar{
+width:90px;
+height:90px;
+border-radius:50%;
+overflow:hidden;
+margin:auto;
+background:linear-gradient(135deg,var(--accent),var(--accent2));
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:34px;
+font-weight:800;
+margin-bottom:15px;
+}
+
+.profile-avatar img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+input{
+width:100%;
+padding:14px;
+border:none;
+outline:none;
+border-radius:14px;
+background:#0b1220;
+color:white;
+margin-top:10px;
+}
+
+.auth-btn{
+margin-top:10px;
+width:100%;
+padding:14px;
+border-radius:14px;
+background:linear-gradient(90deg,var(--accent),var(--accent2));
+}
+
+.logout{
+background:#7f1d1d;
+color:white;
+}
+
+/* MOBILE */
+
+@media(max-width:800px){
+
+body{
+flex-direction:column;
+}
+
+.sidebar{
+width:100%;
+flex-direction:row;
+justify-content:space-around;
+padding:12px;
+border-right:none;
+border-bottom:1px solid var(--line);
+}
+
+.logo{
+display:none;
+}
+
+.main{
+padding:14px;
+}
+
+}
+
 </style>
 </head>
 
 <body>
 
 <div class="sidebar">
-<h3>🐔 CGSocial</h3>
+
+<div class="logo">🐔 CGSocial</div>
+
 <div class="menu-item" onclick="showFeed()">🏠 Feed</div>
 <div class="menu-item" onclick="showProfile()">👤 Perfil</div>
+
 </div>
 
 <div class="main">
 
 <!-- FEED -->
+
 <div id="feedView">
-<h3 id="status">Modo Invitado</h3>
 
-<div id="postBox" style="display:none;">
-<input id="postInput" placeholder="Escribe algo...">
+<div class="topbar">
+<h2>Inicio</h2>
+<div class="status" id="status">Modo Invitado</div>
+</div>
+
+<div id="postBox" class="create-post" style="display:none;">
+
+<textarea id="postInput" placeholder="¿Qué está pasando?"></textarea>
+
+<div class="post-actions">
+
+<label class="file-label">
+📷 Imagen
 <input type="file" id="imgPost" accept="image/*">
-<button onclick="addPost()">Publicar</button>
+</label>
+
+<button class="publish" onclick="addPost()">
+Publicar
+</button>
+
 </div>
 
-<div id="feed"></div>
 </div>
 
-<!-- PERFIL -->
+<div class="feed-grid" id="feed"></div>
+
+</div>
+
+<!-- PROFILE -->
+
 <div id="profileView" style="display:none;">
-<h3>Perfil</h3>
+
+<div class="profile-card">
+
+<div class="profile-avatar" id="profileAvatar">
+?
+</div>
+
+<h2 style="text-align:center;margin-bottom:15px;">Perfil</h2>
 
 <div id="guestPanel">
+
 <input id="email" placeholder="Correo">
 <input id="password" type="password" placeholder="Contraseña">
 <input id="username" placeholder="Nombre">
-<button onclick="register()">Crear cuenta</button>
-<button onclick="login()">Iniciar sesión</button>
+
+<button class="auth-btn" onclick="register()">
+Crear cuenta
+</button>
+
+<button class="auth-btn" onclick="login()">
+Iniciar sesión
+</button>
+
 </div>
 
 <div id="userPanel" style="display:none;">
-<input type="file" id="profileImg" accept="image/png, image/jpeg, image/webp">
-<button onclick="changeProfile()">Cambiar foto</button>
-<button onclick="logout()" style="background:#dc2626">Cerrar sesión</button>
+
+<input type="file" id="profileImg" accept="image/png,image/jpeg,image/webp">
+
+<button class="auth-btn" onclick="changeProfile()">
+Cambiar foto
+</button>
+
+<button class="auth-btn logout" onclick="logout()">
+Cerrar sesión
+</button>
+
+</div>
+
 </div>
 
 </div>
@@ -93,7 +474,8 @@ img{max-width:100%;max-height:250px;border-radius:10px;margin-top:5px}
 
 <script>
 
-// CONFIG
+/* FIREBASE */
+
 const firebaseConfig={
 apiKey:"AIzaSyArVnNFSKQJJ0aWxblU7DtS_pGO4RJlZqk",
 authDomain:"cgsocial.firebaseapp.com",
@@ -105,10 +487,14 @@ firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth();
 const db=firebase.firestore();
 
-let userData=null;
-let isOwner=false;
+/* DATA */
 
-// VISTAS
+let userData=null;
+
+const OWNER_UID="TU_UID";
+
+/* VIEWS */
+
 function showFeed(){
 feedView.style.display="block";
 profileView.style.display="none";
@@ -119,61 +505,113 @@ feedView.style.display="none";
 profileView.style.display="block";
 }
 
-// TIEMPO
+/* TIME */
+
 function tiempo(t){
-let diff=Math.floor((Date.now()-t)/1000);
+
+let diff=Math.max(0,Math.floor((Date.now()-t)/1000));
+
 if(diff<60)return diff+"s";
 if(diff<3600)return Math.floor(diff/60)+" min";
 if(diff<86400)return Math.floor(diff/3600)+" h";
 if(diff<31536000)return Math.floor(diff/86400)+" d";
+
 return Math.floor(diff/31536000)+" a";
+
 }
 
-// REGISTER
-async function register(){
-try{
-let email=email.value.trim();
-let pass=password.value.trim();
-let name=username.value.trim();
+/* ESCAPE */
 
-if(!email||!pass||!name)return alert("Completa todo");
+function escapeHTML(text){
+
+return text
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;");
+
+}
+
+/* REGISTER */
+
+async function register(){
+
+try{
+
+let emailValue=email.value.trim();
+let passValue=password.value.trim();
+let nameValue=username.value.trim();
+
+if(!emailValue||!passValue||!nameValue){
+return alert("Completa todo");
+}
 
 let snap=await db.collection("users").get();
-let existe=snap.docs.some(d=>d.data().username.toLowerCase()===name.toLowerCase());
-if(existe)return alert("Nombre en uso");
 
-let cred=await auth.createUserWithEmailAndPassword(email,pass);
+let exists=snap.docs.some(d=>
+d.data().username.toLowerCase()===nameValue.toLowerCase()
+);
+
+if(exists){
+return alert("Nombre en uso");
+}
+
+let cred=await auth.createUserWithEmailAndPassword(
+emailValue,
+passValue
+);
 
 await db.collection("users").doc(cred.user.uid).set({
-username:name,
+username:nameValue,
 photo:null
 });
 
 alert("Cuenta creada");
-}catch(e){alert(e.message);}
+
+}catch(e){
+alert(e.message);
 }
 
-// LOGIN
+}
+
+/* LOGIN */
+
 async function login(){
+
 try{
-await auth.signInWithEmailAndPassword(email.value,password.value);
-}catch(e){alert(e.message);}
+
+await auth.signInWithEmailAndPassword(
+email.value,
+password.value
+);
+
+}catch(e){
+alert(e.message);
 }
 
-// LOGOUT
-function logout(){auth.signOut();}
+}
 
-// FOTO PERFIL
+/* LOGOUT */
+
+function logout(){
+auth.signOut();
+}
+
+/* PROFILE */
+
 async function changeProfile(){
-let file=profileImg.files[0];
-if(!file)return alert("Selecciona imagen");
 
-let tipos=["image/png","image/jpeg","image/webp"];
-if(!tipos.includes(file.type))return alert("Solo PNG JPG WEBP");
+let file=profileImg.files[0];
+
+if(!file)return;
+
+if(file.size > 1024*1024*2){
+return alert("Máximo 2MB");
+}
 
 let reader=new FileReader();
 
 reader.onload=async e=>{
+
 let base64=e.target.result;
 
 await db.collection("users").doc(auth.currentUser.uid).update({
@@ -182,67 +620,135 @@ photo:base64
 
 userData.photo=base64;
 
+updateProfileAvatar();
+
 alert("Foto actualizada");
+
 };
 
 reader.readAsDataURL(file);
+
 }
 
-// SESSION
+/* SESSION */
+
 auth.onAuthStateChanged(async user=>{
+
 if(user){
+
 let doc=await db.collection("users").doc(user.uid).get();
+
 userData=doc.data();
 
-isOwner=userData.username==="TheRudyPlayer";
-
-status.textContent="Usuario: "+userData.username+(isOwner?" ✓":"");
+status.innerHTML=`Conectado como <b>${userData.username}</b>`;
 
 postBox.style.display="block";
+
 guestPanel.style.display="none";
 userPanel.style.display="block";
 
+updateProfileAvatar();
+
 }else{
+
 status.textContent="Modo Invitado";
+
 postBox.style.display="none";
+
 guestPanel.style.display="block";
 userPanel.style.display="none";
+
+profileAvatar.innerHTML="?";
+
 }
+
 });
 
-// COMPRESIÓN
+/* PROFILE AVATAR */
+
+function updateProfileAvatar(){
+
+if(!userData)return;
+
+profileAvatar.innerHTML=userData.photo
+? `<img src="${userData.photo}">`
+: userData.username.charAt(0).toUpperCase();
+
+}
+
+/* COMPRESS */
+
 function compressImage(file){
+
 return new Promise(resolve=>{
+
 let reader=new FileReader();
+
 reader.onload=e=>{
+
 let img=new Image();
+
 img.src=e.target.result;
+
 img.onload=()=>{
+
 let canvas=document.createElement("canvas");
-let max=400;
-let scale=Math.min(max/img.width,max/img.height);
+
+let max=900;
+
+let scale=Math.min(1,max/img.width,max/img.height);
+
 canvas.width=img.width*scale;
 canvas.height=img.height*scale;
+
 let ctx=canvas.getContext("2d");
+
 ctx.drawImage(img,0,0,canvas.width,canvas.height);
-resolve(canvas.toDataURL("image/jpeg",0.7));
+
+resolve(
+canvas.toDataURL("image/jpeg",0.75)
+);
+
 };
+
 };
+
 reader.readAsDataURL(file);
+
 });
+
 }
 
-// POST
+/* ADD POST */
+
 async function addPost(){
-if(!auth.currentUser)return alert("Inicia sesión");
+
+if(!auth.currentUser){
+return alert("Inicia sesión");
+}
 
 let text=postInput.value.trim();
+
 let file=imgPost.files[0];
+
+if(!text && !file){
+return alert("Publicación vacía");
+}
+
 let img=null;
 
-if(file)img=await compressImage(file);
+if(file){
 
-db.collection("posts").add({
+if(file.size > 1024*1024*4){
+return alert("Máximo 4MB");
+}
+
+img=await compressImage(file);
+
+}
+
+await db.collection("posts").add({
+
 user:userData.username,
 text:text,
 img:img,
@@ -250,55 +756,137 @@ likes:0,
 time:Date.now(),
 uid:auth.currentUser.uid,
 photo:userData.photo||null
+
 });
 
 postInput.value="";
 imgPost.value="";
+
 }
 
-// LIKE
+/* LIKE */
+
 function likePost(id){
-if(!auth.currentUser)return alert("Inicia sesión");
+
+if(!auth.currentUser){
+return alert("Inicia sesión");
+}
 
 db.collection("posts").doc(id).update({
 likes:firebase.firestore.FieldValue.increment(1)
 });
+
 }
 
-// DELETE
+/* DELETE */
+
 function deletePost(id,uid){
-if(isOwner||auth.currentUser.uid===uid){
+
+if(!auth.currentUser)return;
+
+if(
+auth.currentUser.uid===uid ||
+auth.currentUser.uid===OWNER_UID
+){
+
 db.collection("posts").doc(id).delete();
-}else{
-alert("No puedes borrar esto");
-}
+
 }
 
-// FEED
-db.collection("posts").orderBy("time","desc")
+}
+
+/* FEED */
+
+db.collection("posts")
+.orderBy("time","desc")
 .onSnapshot(snap=>{
+
 feed.innerHTML="";
 
 snap.forEach(doc=>{
+
 let p=doc.data();
 
-// AVATAR
-let avatar = p.photo
-  ? `<img src="${p.photo}">`
-  : `<span>${p.user.charAt(0).toUpperCase()}</span>`;
+let avatar=p.photo
+? `<img src="${p.photo}">`
+: p.user.charAt(0).toUpperCase();
 
-let verified=p.user==="TheRudyPlayer"?"✓":"";
+let verified=p.uid===OWNER_UID
+? `<span class="verify">✔</span>`
+: "";
 
 feed.innerHTML+=`
+
 <div class="post">
-<div class="avatar">${avatar}</div>
-<b>${p.user} ${verified}</b> · ${tiempo(p.time)}<br>
-${p.text}<br>
-${p.img?`<img src="${p.img}">`:""}
+
+<div class="post-top">
+
+<div class="avatar">
+${avatar}
+</div>
+
+<div class="user-info">
+
+<div class="username">
+${escapeHTML(p.user)}
+${verified}
+</div>
+
+<div class="time">
+${tiempo(p.time)}
+</div>
+
+</div>
+
+</div>
+
+<div class="post-text">
+${escapeHTML(p.text)}
+</div>
+
+${p.img ? `<img src="${p.img}">` : ""}
+
+<div class="post-bottom">
+
+<button class="action-btn like-btn"
+onclick="likePost('${doc.id}')">
+
 👍 ${p.likes}
-<button class="like" onclick="likePost('${doc.id}')">Like</button>
-${(auth.currentUser&&(auth.currentUser.uid===p.uid||isOwner))?`<button class="delete" onclick="deletePost('${doc.id}','${p.uid}')">🗑️</button>`:""}
-</div>`;
+
+</button>
+
+${
+auth.currentUser &&
+(
+auth.currentUser.uid===p.uid ||
+auth.currentUser.uid===OWNER_UID
+)
+
+?
+
+`
+
+<button class="action-btn delete-btn"
+onclick="deletePost('${doc.id}','${p.uid}')">
+
+🗑️
+
+</button>
+
+`
+
+:
+
+""
+
+}
+
+</div>
+
+</div>
+
+`;
+
 });
 
 });
@@ -306,4 +894,4 @@ ${(auth.currentUser&&(auth.currentUser.uid===p.uid||isOwner))?`<button class="de
 </script>
 
 </body>
-</html>
+  </html>
