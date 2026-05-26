@@ -32,17 +32,21 @@
   box-sizing:border-box;
   font-family:"Inter",sans-serif;
   -webkit-tap-highlight-color:transparent;
+  scrollbar-width:thin;
+  scrollbar-color:#243041 transparent;
 }
 
 html{
-  height:100%;
-  overflow:hidden;
+  min-height:100%;
+  overflow-x:hidden;
+  overflow-y:auto;
   -webkit-text-size-adjust:100%;
 }
 
 body{
-  height:100%;
-  overflow:hidden;
+  min-height:100vh;
+  overflow-x:hidden;
+  overflow-y:auto;
   background:
     radial-gradient(circle at top left,#1e293b 0%,transparent 30%),
     radial-gradient(circle at bottom right,#172554 0%,transparent 35%),
@@ -93,8 +97,8 @@ body{
 
 .main{
   flex:1;
-  height:100vh;
-  overflow-y:auto;
+  min-height:100vh;
+  overflow-y:visible;
   overflow-x:hidden;
   padding:24px;
   scroll-behavior:smooth;
@@ -147,6 +151,7 @@ body{
   display:flex;
   flex-direction:column;
   gap:22px;
+  padding-bottom:160px;
 }
 
 .create-post{
@@ -228,6 +233,13 @@ input[type=file]{
 
 .publish:hover{
   transform:scale(1.03);
+}
+
+#postsContainer{
+  display:flex;
+  flex-direction:column;
+  gap:22px;
+  padding-bottom:40px;
 }
 
 .post{
@@ -577,9 +589,9 @@ button,
 <body>
 
 <div class="sidebar">
-  <div class="logo">🐔 CGSocial</div>
-  <div class="menu-item" onclick="showFeed()">🏠 Feed</div>
-  <div class="menu-item" onclick="showProfile()">👤 Perfil</div>
+  <div class="logo">CGSocial</div>
+  <div class="menu-item" onclick="showFeed()">⌂ Feed</div>
+  <div class="menu-item" onclick="showProfile()">◉ Perfil</div>
 </div>
 
 <div class="main">
@@ -601,7 +613,7 @@ button,
         <div class="post-actions">
           <div class="left-actions">
             <label class="file-label">
-              📷 Imagen
+              ✚ Imagen
               <input type="file" id="imgPost" accept="image/*">
             </label>
           </div>
@@ -642,8 +654,6 @@ button,
 
 <script>
 
-/* FIREBASE */
-
 const firebaseConfig = {
   apiKey:"AIzaSyArVnNFSKQJJ0aWxblU7DtS_pGO4RJlZqk",
   authDomain:"cgsocial.firebaseapp.com",
@@ -655,12 +665,8 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-/* DATA */
-
 let userData = null;
 const OWNER_NAME = "TheRudyPlayer";
-
-/* VIEWS */
 
 function showFeed(){
   feedView.style.display = "block";
@@ -671,8 +677,6 @@ function showProfile(){
   feedView.style.display = "none";
   profileView.style.display = "block";
 }
-
-/* TIME */
 
 function tiempo(t){
   let diff = Math.max(0, Math.floor((Date.now() - t) / 1000));
@@ -703,16 +707,12 @@ function tiempo(t){
   return y + (y === 1 ? " año" : " años");
 }
 
-/* ESCAPE */
-
 function escapeHTML(text){
   return String(text || "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 }
-
-/* STATUS */
 
 function setGuestStatus(){
   status.innerHTML = `
@@ -743,8 +743,6 @@ function setUserStatus(name){
     </div>
   `;
 }
-
-/* REGISTER */
 
 async function register(){
   try{
@@ -779,8 +777,6 @@ async function register(){
   }
 }
 
-/* LOGIN */
-
 async function login(){
   try{
     await auth.signInWithEmailAndPassword(email.value, password.value);
@@ -789,13 +785,9 @@ async function login(){
   }
 }
 
-/* LOGOUT */
-
 function logout(){
   auth.signOut();
 }
-
-/* PROFILE */
 
 async function changeProfile(){
   let file = profileImg.files[0];
@@ -822,8 +814,6 @@ async function changeProfile(){
   reader.readAsDataURL(file);
 }
 
-/* AVATARS */
-
 function updateAvatars(){
   if(!userData) return;
 
@@ -834,8 +824,6 @@ function updateAvatars(){
   profileAvatar.innerHTML = html;
   miniAvatar.innerHTML = html;
 }
-
-/* SESSION */
 
 auth.onAuthStateChanged(async user => {
   if(user){
@@ -857,8 +845,6 @@ auth.onAuthStateChanged(async user => {
     miniAvatar.innerHTML = "?";
   }
 });
-
-/* COMPRESS */
 
 function compressImage(file){
   return new Promise(resolve => {
@@ -887,8 +873,6 @@ function compressImage(file){
   });
 }
 
-/* IMAGE TYPE */
-
 function detectImageType(img, id){
   let box = document.getElementById(id);
   if(!box) return;
@@ -905,8 +889,6 @@ function detectImageType(img, id){
     box.classList.add("horizontal");
   }
 }
-
-/* ADD POST */
 
 async function addPost(){
   if(!auth.currentUser){
@@ -944,8 +926,6 @@ async function addPost(){
   imgPost.value = "";
 }
 
-/* LIKE */
-
 function likePost(id){
   if(!auth.currentUser){
     return alert("Inicia sesión");
@@ -955,8 +935,6 @@ function likePost(id){
     likes: firebase.firestore.FieldValue.increment(1)
   });
 }
-
-/* DELETE */
 
 function deletePost(id, uid){
   if(!auth.currentUser) return;
@@ -974,8 +952,6 @@ function deletePost(id, uid){
   alert("No puedes borrar esto");
 }
 
-/* FEED */
-
 db.collection("posts")
   .orderBy("time", "desc")
   .onSnapshot(snap => {
@@ -989,7 +965,7 @@ db.collection("posts")
         : p.user.charAt(0).toUpperCase();
 
       let verified = p.user === OWNER_NAME
-        ? `<span class="verify">✔</span>`
+        ? `<span class="verify">✓</span>`
         : "";
 
       postsContainer.innerHTML += `
@@ -1021,7 +997,7 @@ db.collection("posts")
 
           <div class="post-bottom">
             <button class="action-btn" onclick="likePost('${doc.id}')">
-              👍 ${p.likes}
+              ♥ ${p.likes}
             </button>
 
             ${
@@ -1029,7 +1005,7 @@ db.collection("posts")
               (auth.currentUser.uid === p.uid || (userData && userData.username === OWNER_NAME))
                 ? `
                   <button class="action-btn delete-btn" onclick="deletePost('${doc.id}','${p.uid}')">
-                    🗑️
+                    ✕
                   </button>
                 `
                 : ""
@@ -1043,4 +1019,4 @@ db.collection("posts")
 </script>
 
 </body>
-  </html>
+</html>
