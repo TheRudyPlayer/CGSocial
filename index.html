@@ -1,239 +1,452 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
 <title>CGSocial NEXT</title>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
 
 :root{
---bg:#050816;
---card:#0f172a;
---card2:#111827;
+
+--bg:#060816;
+--card:#0f172aee;
+--soft:#111827;
 --line:#1e293b;
 --text:#ffffff;
 --sub:#94a3b8;
+
 --accent:#f59e0b;
---accent2:#f97316;
+--accent2:#fb923c;
+
 --danger:#ef4444;
 --like:#2563eb;
+
+--radius:22px;
+
 }
+
+/* RESET */
 
 *{
 margin:0;
 padding:0;
 box-sizing:border-box;
 font-family:"Inter",sans-serif;
+-webkit-tap-highlight-color:transparent;
+}
+
+html{
+height:100%;
+overflow:hidden;
 }
 
 body{
-background:linear-gradient(180deg,#020617,#0f172a);
-color:var(--text);
-display:flex;
-min-height:100vh;
+
+height:100%;
 overflow:hidden;
+
+background:
+radial-gradient(circle at top left,#1e293b 0%,transparent 30%),
+radial-gradient(circle at bottom right,#172554 0%,transparent 35%),
+var(--bg);
+
+color:var(--text);
+
+display:flex;
+
 }
 
 /* SIDEBAR */
 
 .sidebar{
+
 width:240px;
-background:rgba(15,23,42,.85);
-backdrop-filter:blur(20px);
-border-right:1px solid var(--line);
-padding:20px;
+flex-shrink:0;
+
+background:rgba(10,15,30,.72);
+backdrop-filter:blur(18px);
+
+border-right:1px solid rgba(255,255,255,.05);
+
+padding:22px 14px;
+
 display:flex;
 flex-direction:column;
-gap:10px;
+gap:8px;
+
+overflow-y:auto;
+
 }
 
 .logo{
+
 font-size:28px;
 font-weight:800;
-margin-bottom:15px;
+
+padding:8px 10px 18px;
+
 background:linear-gradient(90deg,var(--accent),var(--accent2));
 -webkit-background-clip:text;
 -webkit-text-fill-color:transparent;
+
 }
 
 .menu-item{
-background:transparent;
-padding:14px;
-border-radius:16px;
+
+padding:14px 16px;
+
+border-radius:18px;
+
 cursor:pointer;
-transition:.2s;
+
+font-size:15px;
 font-weight:600;
-color:#cbd5e1;
+
+color:#dbe4f0;
+
+transition:.18s;
+
+display:flex;
+align-items:center;
+gap:10px;
+
 }
 
 .menu-item:hover{
+
 background:#1e293b;
-transform:translateX(4px);
+transform:translateX(3px);
+
 }
 
 /* MAIN */
 
 .main{
+
 flex:1;
+height:100vh;
+
 overflow-y:auto;
-padding:25px;
+overflow-x:hidden;
+
+padding:24px;
+
+scroll-behavior:smooth;
+
 }
 
+/* CUSTOM SCROLL */
+
+.main::-webkit-scrollbar,
+.sidebar::-webkit-scrollbar{
+width:10px;
+}
+
+.main::-webkit-scrollbar-thumb,
+.sidebar::-webkit-scrollbar-thumb{
+background:#243041;
+border-radius:20px;
+}
+
+.main::-webkit-scrollbar-track,
+.sidebar::-webkit-scrollbar-track{
+background:transparent;
+}
+
+/* TOPBAR */
+
 .topbar{
+
+width:100%;
+max-width:760px;
+
+margin:auto auto 18px;
+
 display:flex;
 justify-content:space-between;
 align-items:center;
-margin-bottom:20px;
+gap:12px;
+
+}
+
+.title{
+
+font-size:30px;
+font-weight:800;
+
 }
 
 .status{
-font-size:14px;
+
+font-size:13px;
 color:var(--sub);
+
+background:#101827;
+
+padding:10px 14px;
+
+border-radius:999px;
+
+border:1px solid rgba(255,255,255,.05);
+
 }
 
-.feed-grid{
-display:grid;
-grid-template-columns:1fr;
-gap:15px;
-max-width:700px;
+/* FEED */
+
+.feed{
+
+width:100%;
+max-width:760px;
+
 margin:auto;
+
+display:flex;
+flex-direction:column;
+gap:16px;
+
 }
 
-/* CREATE POST */
+/* CREATE */
 
 .create-post{
-background:rgba(15,23,42,.8);
-backdrop-filter:blur(16px);
-border:1px solid var(--line);
+
+background:var(--card);
+
+border:1px solid rgba(255,255,255,.05);
+
+border-radius:30px;
+
 padding:18px;
-border-radius:24px;
-margin-bottom:20px;
-box-shadow:0 0 30px rgba(0,0,0,.25);
+
+backdrop-filter:blur(18px);
+
+box-shadow:
+0 8px 30px rgba(0,0,0,.22);
+
+}
+
+.create-top{
+
+display:flex;
+gap:12px;
+
 }
 
 textarea{
+
 width:100%;
-resize:none;
+
+background:#0b1220;
+
 border:none;
 outline:none;
-background:#0b1220;
+
 color:white;
-padding:15px;
-border-radius:18px;
-font-size:15px;
+
+padding:16px;
+
+border-radius:22px;
+
+resize:none;
+
 min-height:110px;
-margin-bottom:10px;
+
+font-size:15px;
+line-height:1.5;
+
 }
 
+textarea::placeholder{
+color:#7b8aa1;
+}
+
+/* ACTIONS */
+
 .post-actions{
+
+margin-top:14px;
+
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:10px;
+
+flex-wrap:wrap;
+
+}
+
+.left-actions{
 display:flex;
 gap:10px;
-align-items:center;
+flex-wrap:wrap;
 }
 
 .file-label{
-background:#1e293b;
+
+background:#172033;
+
 padding:12px 16px;
-border-radius:14px;
-cursor:pointer;
+
+border-radius:16px;
+
 font-size:14px;
 font-weight:600;
-transition:.2s;
+
+cursor:pointer;
+
+transition:.18s;
+
 }
 
 .file-label:hover{
-background:#334155;
+background:#223049;
 }
 
 input[type=file]{
 display:none;
 }
 
-button{
-border:none;
-cursor:pointer;
-transition:.2s;
-font-weight:700;
-}
-
 .publish{
+
+border:none;
+
+padding:13px 22px;
+
+border-radius:18px;
+
+font-size:14px;
+font-weight:800;
+
+cursor:pointer;
+
 background:linear-gradient(90deg,var(--accent),var(--accent2));
-padding:12px 18px;
-border-radius:14px;
+
 color:black;
-margin-left:auto;
+
+transition:.18s;
+
 }
 
 .publish:hover{
-transform:scale(1.04);
+transform:scale(1.03);
 }
 
-/* POSTS */
+/* POST */
 
 .post{
-background:rgba(15,23,42,.85);
-backdrop-filter:blur(20px);
-border:1px solid var(--line);
-border-radius:24px;
+
+background:var(--card);
+
+border:1px solid rgba(255,255,255,.05);
+
+border-radius:30px;
+
 padding:18px;
-animation:show .25s ease;
-box-shadow:0 0 25px rgba(0,0,0,.2);
+
+backdrop-filter:blur(18px);
+
+box-shadow:
+0 6px 26px rgba(0,0,0,.22);
+
+animation:show .22s ease;
+
 }
 
 @keyframes show{
+
 from{
 opacity:0;
-transform:translateY(10px);
+transform:translateY(8px);
 }
+
 to{
 opacity:1;
 transform:none;
 }
+
 }
 
-.post-top{
+/* HEADER */
+
+.post-header{
+
 display:flex;
 align-items:center;
 gap:12px;
+
 margin-bottom:12px;
+
 }
 
 .avatar{
-width:48px;
-height:48px;
+
+width:50px;
+height:50px;
+
 border-radius:50%;
+
 overflow:hidden;
-background:linear-gradient(135deg,var(--accent),var(--accent2));
+
+flex-shrink:0;
+
 display:flex;
 align-items:center;
 justify-content:center;
+
 font-weight:800;
 font-size:20px;
+
+background:
+linear-gradient(135deg,var(--accent),var(--accent2));
+
 color:black;
-flex-shrink:0;
+
 }
 
 .avatar img{
+
 width:100%;
 height:100%;
+
 object-fit:cover;
+
 }
 
-.user-info{
+.user-box{
+
 display:flex;
 flex-direction:column;
+
+gap:3px;
+
+min-width:0;
+
 }
 
 .username{
-font-weight:700;
+
 font-size:15px;
+font-weight:700;
+
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+
+}
+
+.verify{
+color:#38bdf8;
+font-size:13px;
+margin-left:4px;
 }
 
 .time{
@@ -241,154 +454,388 @@ font-size:12px;
 color:var(--sub);
 }
 
-.verify{
-color:#38bdf8;
-font-size:14px;
-}
+/* CONTENT */
 
 .post-text{
+
 font-size:15px;
-line-height:1.5;
+line-height:1.6;
+
 word-break:break-word;
-margin-bottom:12px;
+
+color:#f8fafc;
+
+margin-top:4px;
+
 }
 
-.post img{
+.post-image{
+
 width:100%;
-border-radius:20px;
-max-height:420px;
-object-fit:cover;
-margin-top:10px;
-border:1px solid #1e293b;
+
+margin-top:14px;
+
+border-radius:24px;
+
+overflow:hidden;
+
+border:1px solid rgba(255,255,255,.06);
+
+background:#020617;
+
 }
+
+.post-image img{
+
+width:100%;
+display:block;
+
+max-height:520px;
+
+object-fit:cover;
+
+}
+
+/* BOTTOM */
 
 .post-bottom{
+
+margin-top:14px;
+
 display:flex;
 gap:10px;
-margin-top:15px;
+
 }
 
 .action-btn{
+
 flex:1;
+
+border:none;
+
 padding:12px;
-border-radius:14px;
+
+border-radius:16px;
+
 background:#172033;
+
 color:white;
+
+font-size:14px;
+font-weight:700;
+
+cursor:pointer;
+
+transition:.16s;
+
 }
 
 .action-btn:hover{
 background:#243041;
 }
 
-.like-btn.active{
-background:#1d4ed8;
-}
-
 .delete-btn{
-background:#3b1111;
+
+background:#321313;
 color:#fca5a5;
+
 }
 
 .delete-btn:hover{
-background:#521515;
+background:#471717;
 }
 
 /* PROFILE */
 
-.profile-card{
-background:rgba(15,23,42,.85);
-border:1px solid var(--line);
-padding:25px;
-border-radius:26px;
-max-width:450px;
+.profile-wrap{
+
+width:100%;
+max-width:500px;
+
 margin:auto;
+
+}
+
+.profile-card{
+
+background:var(--card);
+
+border:1px solid rgba(255,255,255,.05);
+
+border-radius:34px;
+
+padding:26px;
+
+backdrop-filter:blur(18px);
+
 }
 
 .profile-avatar{
-width:90px;
-height:90px;
+
+width:100px;
+height:100px;
+
+margin:auto auto 16px;
+
 border-radius:50%;
+
 overflow:hidden;
-margin:auto;
-background:linear-gradient(135deg,var(--accent),var(--accent2));
+
+background:
+linear-gradient(135deg,var(--accent),var(--accent2));
+
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:34px;
+
+font-size:38px;
 font-weight:800;
-margin-bottom:15px;
+
+color:black;
+
 }
 
 .profile-avatar img{
+
 width:100%;
 height:100%;
+
 object-fit:cover;
+
+}
+
+.profile-title{
+
+text-align:center;
+
+font-size:28px;
+font-weight:800;
+
+margin-bottom:18px;
+
 }
 
 input{
+
 width:100%;
-padding:14px;
+
+margin-top:12px;
+
+padding:15px;
+
 border:none;
 outline:none;
-border-radius:14px;
+
+border-radius:18px;
+
 background:#0b1220;
+
 color:white;
-margin-top:10px;
+
+font-size:14px;
+
 }
 
 .auth-btn{
-margin-top:10px;
+
 width:100%;
-padding:14px;
-border-radius:14px;
-background:linear-gradient(90deg,var(--accent),var(--accent2));
+
+margin-top:12px;
+
+padding:15px;
+
+border:none;
+
+border-radius:18px;
+
+font-size:14px;
+font-weight:800;
+
+cursor:pointer;
+
+background:
+linear-gradient(90deg,var(--accent),var(--accent2));
+
+color:black;
+
+transition:.18s;
+
+}
+
+.auth-btn:hover{
+transform:translateY(-1px);
 }
 
 .logout{
+
 background:#7f1d1d;
 color:white;
+
 }
 
 /* MOBILE */
 
-@media(max-width:800px){
-
-body{
-flex-direction:column;
-}
+@media(max-width:900px){
 
 .sidebar{
+
+position:fixed;
+
+bottom:0;
+left:0;
+
 width:100%;
+height:78px;
+
+z-index:1000;
+
+border-right:none;
+border-top:1px solid rgba(255,255,255,.05);
+
+padding:10px;
+
 flex-direction:row;
 justify-content:space-around;
-padding:12px;
-border-right:none;
-border-bottom:1px solid var(--line);
+align-items:center;
+
+backdrop-filter:blur(24px);
+
 }
 
 .logo{
 display:none;
 }
 
+.menu-item{
+
+flex-direction:column;
+
+justify-content:center;
+align-items:center;
+
+font-size:12px;
+
+padding:10px;
+
+width:100%;
+
+height:58px;
+
+border-radius:18px;
+
+gap:4px;
+
+}
+
+.menu-item:hover{
+transform:none;
+}
+
 .main{
+
+padding:
+18px
+14px
+110px;
+
+}
+
+.topbar{
+margin-bottom:14px;
+}
+
+.title{
+font-size:24px;
+}
+
+.status{
+font-size:12px;
+padding:8px 12px;
+}
+
+.create-post{
 padding:14px;
+border-radius:26px;
+}
+
+textarea{
+font-size:14px;
+padding:14px;
+min-height:95px;
+}
+
+.post{
+padding:15px;
+border-radius:26px;
+}
+
+.post-image img{
+max-height:420px;
+}
+
+.profile-card{
+padding:22px;
+border-radius:28px;
+}
+
+}
+
+/* SMALL */
+
+@media(max-width:500px){
+
+.main{
+padding-left:10px;
+padding-right:10px;
+}
+
+.feed{
+gap:12px;
+}
+
+.post{
+border-radius:24px;
+}
+
+.create-post{
+border-radius:24px;
+}
+
+.post-image img{
+max-height:360px;
+}
+
+textarea{
+min-height:88px;
 }
 
 }
 
 </style>
+
 </head>
 
 <body>
 
+<!-- SIDEBAR -->
+
 <div class="sidebar">
 
-<div class="logo">🐔 CGSocial</div>
+<div class="logo">
+🐔 CGSocial
+</div>
 
-<div class="menu-item" onclick="showFeed()">🏠 Feed</div>
-<div class="menu-item" onclick="showProfile()">👤 Perfil</div>
+<div class="menu-item" onclick="showFeed()">
+🏠 Feed
+</div>
+
+<div class="menu-item" onclick="showProfile()">
+👤 Perfil
+</div>
 
 </div>
+
+<!-- MAIN -->
 
 <div class="main">
 
@@ -397,20 +844,46 @@ padding:14px;
 <div id="feedView">
 
 <div class="topbar">
-<h2>Inicio</h2>
-<div class="status" id="status">Modo Invitado</div>
+
+<div class="title">
+Inicio
 </div>
+
+<div class="status" id="status">
+Modo Invitado
+</div>
+
+</div>
+
+<div class="feed">
+
+<!-- CREATE -->
 
 <div id="postBox" class="create-post" style="display:none;">
 
-<textarea id="postInput" placeholder="¿Qué está pasando?"></textarea>
+<div class="create-top">
+
+<div class="avatar" id="miniAvatar">
+?
+</div>
+
+<textarea
+id="postInput"
+placeholder="¿Qué está pasando?"
+></textarea>
+
+</div>
 
 <div class="post-actions">
+
+<div class="left-actions">
 
 <label class="file-label">
 📷 Imagen
 <input type="file" id="imgPost" accept="image/*">
 </label>
+
+</div>
 
 <button class="publish" onclick="addPost()">
 Publicar
@@ -420,7 +893,11 @@ Publicar
 
 </div>
 
-<div class="feed-grid" id="feed"></div>
+<!-- POSTS -->
+
+<div id="postsContainer"></div>
+
+</div>
 
 </div>
 
@@ -428,19 +905,32 @@ Publicar
 
 <div id="profileView" style="display:none;">
 
+<div class="profile-wrap">
+
 <div class="profile-card">
 
 <div class="profile-avatar" id="profileAvatar">
 ?
 </div>
 
-<h2 style="text-align:center;margin-bottom:15px;">Perfil</h2>
+<div class="profile-title">
+Perfil
+</div>
 
 <div id="guestPanel">
 
 <input id="email" placeholder="Correo">
-<input id="password" type="password" placeholder="Contraseña">
-<input id="username" placeholder="Nombre">
+
+<input
+id="password"
+type="password"
+placeholder="Contraseña"
+>
+
+<input
+id="username"
+placeholder="Nombre"
+>
 
 <button class="auth-btn" onclick="register()">
 Crear cuenta
@@ -454,7 +944,11 @@ Iniciar sesión
 
 <div id="userPanel" style="display:none;">
 
-<input type="file" id="profileImg" accept="image/png,image/jpeg,image/webp">
+<input
+type="file"
+id="profileImg"
+accept="image/png,image/jpeg,image/webp"
+>
 
 <button class="auth-btn" onclick="changeProfile()">
 Cambiar foto
@@ -472,14 +966,18 @@ Cerrar sesión
 
 </div>
 
+</div>
+
 <script>
 
 /* FIREBASE */
 
 const firebaseConfig={
+
 apiKey:"AIzaSyArVnNFSKQJJ0aWxblU7DtS_pGO4RJlZqk",
 authDomain:"cgsocial.firebaseapp.com",
 projectId:"cgsocial"
+
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -496,20 +994,27 @@ const OWNER_UID="TU_UID";
 /* VIEWS */
 
 function showFeed(){
+
 feedView.style.display="block";
 profileView.style.display="none";
+
 }
 
 function showProfile(){
+
 feedView.style.display="none";
 profileView.style.display="block";
+
 }
 
 /* TIME */
 
 function tiempo(t){
 
-let diff=Math.max(0,Math.floor((Date.now()-t)/1000));
+let diff=Math.max(
+0,
+Math.floor((Date.now()-t)/1000)
+);
 
 if(diff<60)return diff+"s";
 if(diff<3600)return Math.floor(diff/60)+" min";
@@ -555,20 +1060,27 @@ if(exists){
 return alert("Nombre en uso");
 }
 
-let cred=await auth.createUserWithEmailAndPassword(
+let cred=
+await auth.createUserWithEmailAndPassword(
 emailValue,
 passValue
 );
 
-await db.collection("users").doc(cred.user.uid).set({
+await db.collection("users")
+.doc(cred.user.uid)
+.set({
+
 username:nameValue,
 photo:null
+
 });
 
 alert("Cuenta creada");
 
 }catch(e){
+
 alert(e.message);
+
 }
 
 }
@@ -585,7 +1097,9 @@ password.value
 );
 
 }catch(e){
+
 alert(e.message);
+
 }
 
 }
@@ -614,13 +1128,17 @@ reader.onload=async e=>{
 
 let base64=e.target.result;
 
-await db.collection("users").doc(auth.currentUser.uid).update({
+await db.collection("users")
+.doc(auth.currentUser.uid)
+.update({
+
 photo:base64
+
 });
 
 userData.photo=base64;
 
-updateProfileAvatar();
+updateAvatars();
 
 alert("Foto actualizada");
 
@@ -630,24 +1148,42 @@ reader.readAsDataURL(file);
 
 }
 
+/* AVATARS */
+
+function updateAvatars(){
+
+if(!userData)return;
+
+let html=userData.photo
+? `<img src="${userData.photo}">`
+: userData.username.charAt(0).toUpperCase();
+
+profileAvatar.innerHTML=html;
+miniAvatar.innerHTML=html;
+
+}
+
 /* SESSION */
 
 auth.onAuthStateChanged(async user=>{
 
 if(user){
 
-let doc=await db.collection("users").doc(user.uid).get();
+let doc=await db.collection("users")
+.doc(user.uid)
+.get();
 
 userData=doc.data();
 
-status.innerHTML=`Conectado como <b>${userData.username}</b>`;
+status.innerHTML=
+`Conectado como <b>${userData.username}</b>`;
 
 postBox.style.display="block";
 
 guestPanel.style.display="none";
 userPanel.style.display="block";
 
-updateProfileAvatar();
+updateAvatars();
 
 }else{
 
@@ -663,18 +1199,6 @@ profileAvatar.innerHTML="?";
 }
 
 });
-
-/* PROFILE AVATAR */
-
-function updateProfileAvatar(){
-
-if(!userData)return;
-
-profileAvatar.innerHTML=userData.photo
-? `<img src="${userData.photo}">`
-: userData.username.charAt(0).toUpperCase();
-
-}
 
 /* COMPRESS */
 
@@ -692,21 +1216,32 @@ img.src=e.target.result;
 
 img.onload=()=>{
 
-let canvas=document.createElement("canvas");
+let canvas=
+document.createElement("canvas");
 
-let max=900;
+let max=1000;
 
-let scale=Math.min(1,max/img.width,max/img.height);
+let scale=Math.min(
+1,
+max/img.width,
+max/img.height
+);
 
 canvas.width=img.width*scale;
 canvas.height=img.height*scale;
 
 let ctx=canvas.getContext("2d");
 
-ctx.drawImage(img,0,0,canvas.width,canvas.height);
+ctx.drawImage(
+img,
+0,
+0,
+canvas.width,
+canvas.height
+);
 
 resolve(
-canvas.toDataURL("image/jpeg",0.75)
+canvas.toDataURL("image/jpeg",0.78)
 );
 
 };
@@ -772,8 +1307,13 @@ if(!auth.currentUser){
 return alert("Inicia sesión");
 }
 
-db.collection("posts").doc(id).update({
-likes:firebase.firestore.FieldValue.increment(1)
+db.collection("posts")
+.doc(id)
+.update({
+
+likes:
+firebase.firestore.FieldValue.increment(1)
+
 });
 
 }
@@ -789,7 +1329,9 @@ auth.currentUser.uid===uid ||
 auth.currentUser.uid===OWNER_UID
 ){
 
-db.collection("posts").doc(id).delete();
+db.collection("posts")
+.doc(id)
+.delete();
 
 }
 
@@ -801,7 +1343,7 @@ db.collection("posts")
 .orderBy("time","desc")
 .onSnapshot(snap=>{
 
-feed.innerHTML="";
+postsContainer.innerHTML="";
 
 snap.forEach(doc=>{
 
@@ -811,29 +1353,34 @@ let avatar=p.photo
 ? `<img src="${p.photo}">`
 : p.user.charAt(0).toUpperCase();
 
-let verified=p.uid===OWNER_UID
+let verified=
+p.uid===OWNER_UID
 ? `<span class="verify">✔</span>`
 : "";
 
-feed.innerHTML+=`
+postsContainer.innerHTML+=`
 
 <div class="post">
 
-<div class="post-top">
+<div class="post-header">
 
 <div class="avatar">
 ${avatar}
 </div>
 
-<div class="user-info">
+<div class="user-box">
 
 <div class="username">
+
 ${escapeHTML(p.user)}
 ${verified}
+
 </div>
 
 <div class="time">
+
 ${tiempo(p.time)}
+
 </div>
 
 </div>
@@ -841,15 +1388,36 @@ ${tiempo(p.time)}
 </div>
 
 <div class="post-text">
+
 ${escapeHTML(p.text)}
+
 </div>
 
-${p.img ? `<img src="${p.img}">` : ""}
+${
+p.img
+
+?
+
+`
+
+<div class="post-image">
+<img src="${p.img}">
+</div>
+
+`
+
+:
+
+""
+
+}
 
 <div class="post-bottom">
 
-<button class="action-btn like-btn"
-onclick="likePost('${doc.id}')">
+<button
+class="action-btn"
+onclick="likePost('${doc.id}')"
+>
 
 👍 ${p.likes}
 
@@ -866,8 +1434,10 @@ auth.currentUser.uid===OWNER_UID
 
 `
 
-<button class="action-btn delete-btn"
-onclick="deletePost('${doc.id}','${p.uid}')">
+<button
+class="action-btn delete-btn"
+onclick="deletePost('${doc.id}','${p.uid}')"
+>
 
 🗑️
 
@@ -894,4 +1464,4 @@ onclick="deletePost('${doc.id}','${p.uid}')">
 </script>
 
 </body>
-  </html>
+</html>
