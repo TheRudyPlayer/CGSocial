@@ -235,7 +235,8 @@ input[type=file]{
   transform:scale(1.03);
 }
 
-#postsContainer{
+#postsContainer,
+#commentsContainer{
   display:flex;
   flex-direction:column;
   gap:22px;
@@ -473,6 +474,11 @@ button,
   touch-action:manipulation;
 }
 
+/* COMMENTS VIEW */
+#commentsView{
+  width:100%;
+}
+
 @media(max-width:900px){
   body{
     flex-direction:column;
@@ -626,6 +632,32 @@ button,
     </div>
   </div>
 
+  <div id="commentsView" style="display:none;">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="action-btn" style="width:50px;flex:none;border-radius:16px;" onclick="backToFeed()">←</button>
+        <div class="title">Post</div>
+      </div>
+    </div>
+
+    <div class="feed">
+      <div id="singlePost"></div>
+
+      <div class="create-post" id="commentBox">
+        <div class="create-top">
+          <div class="avatar" id="commentAvatar">?</div>
+          <textarea id="commentInput" placeholder="Escribe un comentario..."></textarea>
+        </div>
+
+        <div class="post-actions">
+          <button class="publish" onclick="sendComment()">Comentar</button>
+        </div>
+      </div>
+
+      <div id="commentsContainer"></div>
+    </div>
+  </div>
+
   <div id="profileView" style="display:none;">
     <div class="profile-wrap">
       <div class="profile-card">
@@ -668,14 +700,27 @@ const db = firebase.firestore();
 let userData = null;
 const OWNER_NAME = "TheRudyPlayer";
 
+let currentPostId = null;
+let unsubscribeComments = null;
+
 function showFeed(){
   feedView.style.display = "block";
+  commentsView.style.display = "none";
   profileView.style.display = "none";
+  if(unsubscribeComments){
+    unsubscribeComments();
+    unsubscribeComments = null;
+  }
 }
 
 function showProfile(){
   feedView.style.display = "none";
+  commentsView.style.display = "none";
   profileView.style.display = "block";
+  if(unsubscribeComments){
+    unsubscribeComments();
+    unsubscribeComments = null;
+  }
 }
 
 function tiempo(t){
@@ -823,6 +868,7 @@ function updateAvatars(){
 
   profileAvatar.innerHTML = html;
   miniAvatar.innerHTML = html;
+  commentAvatar.innerHTML = html;
 }
 
 auth.onAuthStateChanged(async user => {
@@ -843,6 +889,7 @@ auth.onAuthStateChanged(async user => {
     userPanel.style.display = "none";
     profileAvatar.innerHTML = "?";
     miniAvatar.innerHTML = "?";
+    commentAvatar.innerHTML = "?";
   }
 });
 
@@ -952,71 +999,56 @@ function deletePost(id, uid){
   alert("No puedes borrar esto");
 }
 
-db.collection("posts")
-  .orderBy("time", "desc")
-  .onSnapshot(snap => {
-    postsContainer.innerHTML = "";
+function openComments(postId){
+  currentPostId = postId;
 
-    snap.forEach(doc => {
-      let p = doc.data();
+  feedView.style.display = "none";
+  profileView.style.display = "none";
+  commentsView.style.display = "block";
 
-      let avatar = p.photo
-        ? `<img src="${p.photo}">`
-        : p.user.charAt(0).toUpperCase();
+  if(unsubscribeComments){
+    unsubscribeComments();
+    unsubscribeComments = null;
+  }
 
-      let verified = p.user === OWNER_NAME
-        ? `<span class="verify">✓</span>`
-        : "";
+  db.collection("posts").doc(postId).get().then(doc => {
+    let p = doc.data();
+    if(!p) return;
 
-      postsContainer.innerHTML += `
-        <div class="post">
-          <div class="post-header">
-            <div class="avatar">${avatar}</div>
-            <div class="user-box">
-              <div class="username">
-                ${escapeHTML(p.user)}
-                ${verified}
-              </div>
-              <div class="time">${tiempo(p.time)}</div>
+    let avatar = p.photo
+      ? `<img src="${p.photo}">`
+      : p.user.charAt(0).toUpperCase();
+
+    let verified = p.user === OWNER_NAME
+      ? `<span class="verify">✓</span>`
+      : "";
+
+    singlePost.innerHTML = `
+      <div class="post">
+        <div class="post-header">
+          <div class="avatar">${avatar}</div>
+          <div class="user-box">
+            <div class="username">
+              ${escapeHTML(p.user)}
+              ${verified}
             </div>
-          </div>
-
-          <div class="post-text">
-            ${escapeHTML(p.text)}
-          </div>
-
-          ${
-            p.img
-              ? `
-                <div class="post-image" id="img-${doc.id}">
-                  <img src="${p.img}" onload="detectImageType(this,'img-${doc.id}')">
-                </div>
-              `
-              : ""
-          }
-
-          <div class="post-bottom">
-            <button class="action-btn" onclick="likePost('${doc.id}')">
-              ♥ ${p.likes}
-            </button>
-
-            ${
-              auth.currentUser &&
-              (auth.currentUser.uid === p.uid || (userData && userData.username === OWNER_NAME))
-                ? `
-                  <button class="action-btn delete-btn" onclick="deletePost('${doc.id}','${p.uid}')">
-                    ✕
-                  </button>
-                `
-                : ""
-            }
+            <div class="time">${tiempo(p.time)}</div>
           </div>
         </div>
-      `;
-    });
-  });
 
-</script>
+        <div class="post-text">
+          ${escapeHTML(p.text)}
+        </div>
 
-</body>
-</html>
+        ${
+          p.img
+            ? `
+              <div class="post-image" id="single-img-${postId}">
+                <img src="${p.img}" onload="detectImageType(this,'single-img-${postId}')">
+              </div>
+            `
+            : ""
+        }
+
+        <div class="post-bottom">
+          <button class="action-btn" onclick="li
