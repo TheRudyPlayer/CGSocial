@@ -1256,142 +1256,143 @@ function loadComments(){
 
 db.collection("posts")
 .orderBy("time","desc")
+.limit(20)
 .onSnapshot(snap => {
 
   postsContainer.innerHTML = "";
 
-  snap.forEach(doc => {
+  snap.docChanges().forEach(change => {
 
-    let p = doc.data();
+    if(change.type === "added"){
 
-    let avatar = p.photo
-      ? `<img src="${p.photo}">`
-      : p.user.charAt(0).toUpperCase();
+      let doc = change.doc;
+      let p = doc.data();
 
-    let verified =
-      p.user === OWNER_NAME
-      ? `<span class="verify">✓</span>`
-      : "";
+      let avatar = p.photo
+        ? `<img src="${p.photo}">`
+        : p.user.charAt(0).toUpperCase();
 
-    postsContainer.innerHTML += `
+      let verified =
+        p.user === OWNER_NAME
+        ? `<span class="verify">✓</span>`
+        : "";
 
-    <div class="post">
+      postsContainer.insertAdjacentHTML("beforeend",`
 
-      <div class="post-header">
+      <div class="post">
 
-        <div class="avatar">
-          ${avatar}
-        </div>
+        <div class="post-header">
 
-        <div class="user-box">
-
-          <div class="username">
-            ${escapeHTML(p.user)}
-            ${verified}
+          <div class="avatar">
+            ${avatar}
           </div>
 
-          <div class="time">
-            ${tiempo(p.time)}
+          <div class="user-box">
+
+            <div class="username">
+              ${escapeHTML(p.user)}
+              ${verified}
+            </div>
+
+            <div class="time">
+              ${tiempo(p.time)}
+            </div>
+
           </div>
 
         </div>
 
-      </div>
-
-      ${
-        p.text
-        ?
-
-        `
-
-        <div class="post-text">
-          ${escapeHTML(p.text)}
-        </div>
-
-        `
-
-        : ""
-
-      }
-
-      ${
-        p.img
-
-        ?
-
-        `
-
-        <div
-        class="post-image"
-        id="img-${doc.id}">
-
-          <img
-          src="${p.img}"
-          onload="detectImageType(this,'img-${doc.id}')">
-
-        </div>
-
-        `
-
-        : ""
-
-      }
-
-      <div class="post-bottom">
-
-        <button
-        class="action-btn"
-        onclick="likePost('${doc.id}')">
-
-        ♥ ${p.likes || 0}
-
-        </button>
-
-        <button
-        class="action-btn"
-        onclick="openComments('${doc.id}')">
-
-        ⌕ Comentarios
-
-        </button>
 
         ${
-          auth.currentUser &&
-          (
-            auth.currentUser.uid === p.uid ||
-            (
-              userData &&
-              userData.username === OWNER_NAME
-            )
-          )
-
+          p.text
           ?
-
           `
+          <div class="post-text">
+            ${escapeHTML(p.text)}
+          </div>
+          `
+          :
+          ""
+        }
+
+
+        ${
+          p.img
+          ?
+          `
+          <div class="post-image" id="img-${doc.id}">
+
+            <img
+            src="${p.img}"
+            onload="detectImageType(this,'img-${doc.id}')">
+
+          </div>
+          `
+          :
+          ""
+        }
+
+
+        <div class="post-bottom">
 
           <button
-          class="action-btn delete-btn"
-          onclick="deletePost('${doc.id}','${p.uid}')">
+          class="action-btn"
+          onclick="likePost('${doc.id}')">
 
-          ✕
+          ♥ ${p.likes || 0}
 
           </button>
 
-          `
 
-          : ""
+          <button
+          class="action-btn"
+          onclick="openComments('${doc.id}')">
 
-        }
+          ⌕ Comentarios
+
+          </button>
+
+
+          ${
+            auth.currentUser &&
+            (
+              auth.currentUser.uid === p.uid ||
+              (
+                userData &&
+                userData.username === OWNER_NAME
+              )
+            )
+
+            ?
+
+            `
+            <button
+            class="action-btn delete-btn"
+            onclick="deletePost('${doc.id}','${p.uid}')">
+
+            ✕
+
+            </button>
+            `
+
+            :
+
+            ""
+
+          }
+
+        </div>
 
       </div>
 
-    </div>
+      `);
 
-    `;
+    }
 
   });
 
 });
+
 </script>
 
 </body>
