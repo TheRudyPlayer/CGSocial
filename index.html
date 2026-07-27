@@ -1081,26 +1081,35 @@ function backToFeed(){
 }
 
 async function sendComment(){
-  if(!auth.currentUser){
-    return alert("Inicia sesión");
+
+  try{
+
+    if(!auth.currentUser){
+      return alert("Inicia sesión");
+    }
+
+    let text = commentInput.value.trim();
+    if(!text) return;
+
+    await db.collection("posts")
+      .doc(currentPostId)
+      .collection("comments")
+      .add({
+        user: userData.username,
+        photo: userData.photo || null,
+        text: text,
+        likes: 0,
+        time: Date.now(),
+        uid: auth.currentUser.uid
+      });
+
+    commentInput.value = "";
+    alert("Comentario enviado");
+
+  }catch(e){
+    alert(e.message);
   }
 
-  let text = commentInput.value.trim();
-  if(!text) return;
-
-  await db.collection("posts")
-    .doc(currentPostId)
-    .collection("comments")
-    .add({
-      user: userData.username,
-      photo: userData.photo || null,
-      text: text,
-      likes: 0,
-      time: Date.now(),
-      uid: auth.currentUser.uid
-    });
-
-  commentInput.value = "";
 }
 
 function likeComment(commentId){
