@@ -781,8 +781,28 @@ async function register(){
 async function login(){
   try{
     await auth.signInWithEmailAndPassword(email.value, password.value);
-  }catch(e){
-    alert(e.message);
+}catch(e){
+
+  switch(e.code){
+
+    case "auth/email-already-in-use":
+      alert("Ese correo ya está registrado.");
+      break;
+
+    case "auth/invalid-email":
+      alert("El correo no es válido.");
+      break;
+
+    case "auth/weak-password":
+      alert("La contraseña debe tener al menos 6 caracteres.");
+      break;
+
+    default:
+      alert("No se pudo crear la cuenta.");
+      console.error(e);
+
+  }
+
   }
 }
 
@@ -791,6 +811,7 @@ function logout(){
 }
 
 async function changeProfile(){
+
   let file = profileImg.files[0];
   if(!file) return;
 
@@ -801,18 +822,48 @@ async function changeProfile(){
   let reader = new FileReader();
 
   reader.onload = async e => {
+
     let base64 = e.target.result;
 
+    // Actualiza la foto del usuario
     await db.collection("users").doc(auth.currentUser.uid).update({
       photo: base64
     });
 
+    // Actualiza todas las publicaciones del usuario
+    const posts = await db.collection("posts")
+      .where("uid","==",auth.currentUser.uid)
+      .get();
+
+    for(const post of posts.docs){
+
+      await post.ref.update({
+        photo: base64
+      });
+
+      // Actualiza los comentarios del usuario
+      const comments = await post.ref
+        .collection("comments")
+        .where("uid","==",auth.currentUser.uid)
+        .get();
+
+      for(const comment of comments.docs){
+        await comment.ref.update({
+          photo: base64
+        });
+      }
+
+    }
+
     userData.photo = base64;
     updateAvatars();
+
     alert("Foto actualizada");
+
   };
 
   reader.readAsDataURL(file);
+
 }
 
 function updateAvatars(){
