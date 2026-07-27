@@ -1256,7 +1256,6 @@ function loadComments(){
 
 db.collection("posts")
 .orderBy("time","desc")
-.limit(20)
 .onSnapshot(snap => {
 
   snap.docChanges().forEach(change => {
@@ -1381,18 +1380,15 @@ db.collection("posts")
 
         </div>
 
-      </div>
+              </div>
 
       `);
 
     }
-  }
 
   });
-});
 
 });
-
 </script>
 
 </body>
